@@ -1,27 +1,33 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(deep_learning VERSION 1.0 LANGUAGES CXX)
+project(vision_cpp VERSION 1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenCV REQUIRED)
 
 add_executable(
-    ${PROJECT_NAME}
+        ${PROJECT_NAME}
 
-    # source files
-    main.cpp
-    src/materials.cpp
+        # source files
+        main.cpp
+        src/materials.cpp
 
-    # image processing
-    src/filters/blur/blur.cpp
-    src/filters/sharpen/sharpen.cpp
-    src/filters/edge_detection/edge_detection.cpp
+        # image processing
+        src/filters/blur/blur.cpp
+        src/filters/sharpen/sharpen.cpp
+        src/filters/edge_detection/edge_detection.cpp
+
+        # thresholding
+        src/thresholding/thresholding.cpp
+        src/image_processing.hpp
+        src/image_processing.cpp
+        src/macros.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 target_link_libraries(${PROJECT_NAME}
-    "-framework CoreGraphics"
-    "-framework Foundation"
+        "-framework CoreGraphics"
+        "-framework Foundation"
 )

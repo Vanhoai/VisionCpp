@@ -1,2 +1,2 @@
 run:
-	cd build && cmake .. && make && ./deep_learning & cd ..
+	cd build && cmake .. && make && ./vision_cpp & cd ..

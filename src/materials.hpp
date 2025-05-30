@@ -10,7 +10,8 @@ namespace materials {
     std::pair<int, int> getCenterPosition(int windowWidth, int windowHeight);
     cv::Mat convertToGrayscale(const cv::Mat &input);
     void showPairImage(int widthSingle, int heightSingle,
-                       std::pair<cv::Mat, cv::Mat> sources);
+                       const std::pair<cv::Mat, cv::Mat> &sources);
+    void showImageCenterWindow(const cv::Mat &image);
 
 }   // namespace materials
 

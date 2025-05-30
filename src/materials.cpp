@@ -8,11 +8,12 @@ using namespace std;
 using namespace cv;
 
 namespace materials {
+
     // Function to get the screen resolution
     std::pair<int, int> getScreenResolution() {
-        auto mainDisplayId = CGMainDisplayID();
-        int width = CGDisplayPixelsWide(mainDisplayId);
-        int height = CGDisplayPixelsHigh(mainDisplayId);
+        const auto mainDisplayId = CGMainDisplayID();
+        size_t width = CGDisplayPixelsWide(mainDisplayId);
+        size_t height = CGDisplayPixelsHigh(mainDisplayId);
         return std::make_pair(width, height);
     }
 
@@ -32,8 +33,8 @@ namespace materials {
 
         for (int y = 0; y < input.rows; y++) {
             for (int x = 0; x < input.cols; x++) {
-                Vec3b pixel = input.at<Vec3b>(y, x);
-                uchar grayVal = static_cast<uchar>(
+                const auto &pixel = input.at<Vec3b>(y, x);
+                auto grayVal = static_cast<uchar>(
                     0.299 * pixel[2] + 0.587 * pixel[1] + 0.114 * pixel[0]);
 
                 gray.at<uchar>(y, x) = grayVal;
@@ -43,25 +44,41 @@ namespace materials {
         return gray;
     }
 
-    void showPairImage(int widthSingle, int heightSingle,
-                       pair<Mat, Mat> sources) {
-        cv::namedWindow("CenteredWindow");
+    void showImageCenterWindow(const Mat &image) {
+        const string windowName = "ImageCentered";
+        namedWindow(windowName);
 
-        int width = 2 * widthSingle;
-        int height = 1 * heightSingle;
-        cv::Mat images = cv::Mat(height, width, sources.first.type());
+        const int width = image.cols;
+        const int height = image.rows;
 
-        auto [x, y] = materials::getCenterPosition(width, height);
+        auto [x, y] = getCenterPosition(width, height);
+        imshow(windowName, image);
+        moveWindow(windowName, x, y - 100);
+        waitKey(0);
+        destroyAllWindows();
+    }
 
-        cv::Rect subImageROI = cv::Rect(0, 0, heightSingle, widthSingle);
+    void showPairImage(const int widthSingle, const int heightSingle,
+                       const pair<Mat, Mat> &sources) {
+        const string windowName = "ImageCentered";
+        namedWindow(windowName);
+
+        const int width = 2 * widthSingle;
+        const int height = 1 * heightSingle;
+        const auto images = Mat(height, width, sources.first.type());
+
+        auto [x, y] = getCenterPosition(width, height);
+
+        auto subImageROI = cv::Rect(0, 0, heightSingle, widthSingle);
         sources.first.copyTo(images(subImageROI));
 
         subImageROI.x = heightSingle;
         sources.second.copyTo(images(subImageROI));
 
-        cv::imshow("CenteredWindow", images);
-        cv::moveWindow("CenteredWindow", x, y - 100);
-        cv::waitKey(0);
+        imshow(windowName, images);
+        moveWindow(windowName, x, y - 100);
+        waitKey(0);
+        destroyAllWindows();
     }
 
 }   // namespace materials
