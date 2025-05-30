@@ -38,3 +38,5 @@
 
 # clang-tidy output
 /clang-tidy-fixes.patch
+
+output.avi
