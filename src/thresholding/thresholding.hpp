@@ -1,7 +1,3 @@
-//
-// Created by VanHoai on 30/5/25.
-//
-
 #ifndef THRESHOLDING_H
 #define THRESHOLDING_H
 
@@ -55,7 +51,7 @@ class Thresholding : public ImageProcessing {
                                                 ThresholdingType type) const;
 
         [[nodiscard]] int openCVOtsu(int thresh, int maxVal) const;
-        [[nodiscard]] void compareWithOpencv(int thresh, int maxVal) const;
+        void compareWithOpencv(int thresh, int maxVal) const;
 };
 
 #endif   // THRESHOLDING_H

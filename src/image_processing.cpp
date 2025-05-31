@@ -3,8 +3,6 @@
 //
 
 #include "image_processing.hpp"
-
-#include <iostream>
 #include <opencv2/opencv.hpp>
 
 void ImageProcessing::convertToGrayScale() {

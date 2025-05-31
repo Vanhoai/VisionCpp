@@ -1,10 +1,5 @@
-//
-// Created by VanHoai on 30/5/25.
-//
-
 #include "thresholding.hpp"
 #include "../macros.hpp"
-
 #include <opencv2/opencv.hpp>
 
 cv::Mat Thresholding::applyThresholding(const int thresh, const int maxVal,

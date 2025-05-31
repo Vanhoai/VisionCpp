@@ -25,9 +25,10 @@ namespace blur {
                         }
                     }
                 }
-                outputImage.at<cv::Vec3b>(i, j) = pixelValue;
+                outputImage.at<Vec3b>(i, j) = pixelValue;
             }
         }
+
         std::cout << "Applied kernel to image." << std::endl;
     }
 

@@ -23,7 +23,8 @@ void EdgeDetection::calculateGradient(const Mat &grayImage, Mat &magnitude,
             // Apply Sobel X kernel
             for (int ki = -1; ki <= 1; ki++) {
                 for (int kj = -1; kj <= 1; kj++) {
-                    double pixelValue = grayImage.at<uchar>(i + ki, j + kj);
+                    const double pixelValue =
+                        grayImage.at<uchar>(i + ki, j + kj);
                     gx += pixelValue * kernelX[ki + 1][kj + 1];
                     gy += pixelValue * kernelY[ki + 1][kj + 1];
                 }
@@ -112,8 +113,8 @@ void connectWeakEdges(Mat &result, Mat &visited, int i, int j) {
 }
 
 Mat EdgeDetection::hysteresisThresholding(const Mat &suppressedImage,
-                                          double lowThreshold,
-                                          double highThreshold) {
+                                          const double lowThreshold,
+                                          const double highThreshold) {
     int rows = suppressedImage.rows;
     int cols = suppressedImage.cols;
 

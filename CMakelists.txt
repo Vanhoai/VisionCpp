@@ -16,14 +16,26 @@ add_executable(
 
         # image processing
         src/filters/blur/blur.cpp
+        src/filters/blur/blur.hpp
+        src/filters/sharpen/sharpen.hpp
         src/filters/sharpen/sharpen.cpp
+        src/filters/edge_detection/edge_detection.hpp
         src/filters/edge_detection/edge_detection.cpp
 
         # thresholding
         src/thresholding/thresholding.cpp
+        src/thresholding/thresholding.hpp
+
+        # base classes
         src/image_processing.hpp
         src/image_processing.cpp
         src/macros.hpp
+
+        # object detection
+        src/detectors/haar_cascade/haar_cascade.cpp
+        src/detectors/haar_cascade/haar_cascade.hpp
+        src/detectors/hog/hog.cpp
+        src/detectors/hog/hog.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
