@@ -36,6 +36,13 @@ add_executable(
         src/detectors/haar_cascade/haar_cascade.hpp
         src/detectors/hog/hog.cpp
         src/detectors/hog/hog.hpp
+
+        # feature extraction
+        src/features/features.hpp
+        src/features/features.cpp
+        
+        src/features/sift.cpp
+        src/features/sift.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
