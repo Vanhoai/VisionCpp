@@ -78,7 +78,8 @@ namespace feature_detection {
     }
 
     bool SIFTDetector::isExtremum(const vector<vector<Mat>> &dogSpace,
-                                  int octave, int scale, int x, int y) {
+                                  const int octave, const int scale,
+                                  const int x, const int y) {
 
         const float centerValue = dogSpace[octave][scale].at<float>(y, x);
         bool isMax = true, isMin = true;

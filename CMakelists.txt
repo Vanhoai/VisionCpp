@@ -40,9 +40,11 @@ add_executable(
         # feature extraction
         src/features/features.hpp
         src/features/features.cpp
-        
+
         src/features/sift.cpp
         src/features/sift.hpp
+        src/tensor/tensor.cpp
+        src/tensor/tensor.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

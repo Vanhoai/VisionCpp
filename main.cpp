@@ -31,18 +31,5 @@ int main() {
     cout << "OpenCV Version: " << CV_VERSION << endl;
     cout << "C++ Standard Version: " << __cplusplus << endl;
 
-    const Mat imr = imread(image_path);
-    Mat image;
-    resize(imr, image, Size(600, 600));
-
-    vector<KeyPoint> keypoints;
-    const Ptr<SIFT> sift = SIFT::create();
-    sift->detect(image, keypoints);
-
-    Mat output;
-    drawKeypoints(image, keypoints, output, Scalar::all(-1),
-                  DrawMatchesFlags::DEFAULT);
-    materials::showImageCenterWindow(output);
-
     return EXIT_SUCCESS;
 }
