@@ -1,3 +1,4 @@
+#include <Eigen/Core>
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
@@ -20,16 +21,26 @@
 #include "src/features/features.hpp"
 #include "src/features/sift.hpp"
 
+// Neural Networks
+#include "src/eigen3/eigen3.hpp"
+#include "src/nn/activation.hpp"
+
 using namespace std;
 using namespace cv;
+using namespace Eigen;
 
 const string root = "/Users/aurorastudyvn/Workspace/ML/VisionCpp";
 const string image_path = root + "/image.jpg";
 const string video_path = root + "/video.mp4";
 
 int main() {
-    cout << "OpenCV Version: " << CV_VERSION << endl;
-    cout << "C++ Standard Version: " << __cplusplus << endl;
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout.tie(nullptr);
 
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+
+    Eigen3Learning::random_matrix_operations();
     return EXIT_SUCCESS;
 }
