@@ -60,11 +60,24 @@ add_executable(
         src/nn/model.hpp
         src/nn/optimizer.cpp
         src/nn/optimizer.hpp
+        src/nn/prepare.cpp
+        src/nn/prepare.hpp
+        src/utilities/multivariate_normal/multivariate_normal.cpp
+        src/utilities/multivariate_normal/multivariate_normal.hpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+#target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+#target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+#target_link_libraries(${PROJECT_NAME} PUBLIC matplot)
+#target_link_libraries(${PROJECT_NAME}
+#        "-framework CoreGraphics"
+#        "-framework Foundation"
+#)
+
 target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        ${OpenCV_LIBS}
+        Eigen3::Eigen
         "-framework CoreGraphics"
         "-framework Foundation"
 )
