@@ -4,18 +4,18 @@
 
 #include "loss.hpp"
 
+#include <iostream>
+
 namespace nn {
     double CrossEntropyLoss::operator()(MatrixXd &Y, MatrixXd &A) {
-        // double epsilon = 1e-15;
-        // A = np.clip(A, epsilon, 1 - epsilon)
-        // return -np.mean(np.sum(Y * np.log(A), axis=1))
-
-        MatrixXd clipped = A.array().max(epsilon).min(1 - epsilon);
-        A = clipped.array().log();
-        const MatrixXd loss = Y.array() * A.array();
-        return -loss.sum() / Y.rows();
+        const MatrixXd clipped = A.array().max(epsilon).min(1 - epsilon);
+        MatrixXd log = clipped.array().log();
+        const MatrixXd loss = Y.array() * log.array();
+        const VectorXd rowMax = loss.rowwise().sum();
+        return -rowMax.mean();
     }
 
+    // FIXME: A - Y only works if the activation function is softmax
     MatrixXd CrossEntropyLoss::derivative(MatrixXd &Y, MatrixXd &A) {
         return A.array() - Y.array();
     }

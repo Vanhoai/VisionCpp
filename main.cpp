@@ -2,6 +2,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <string>
+#include <vector>
 
 // Filters
 #include "src/filters/edge_detection/edge_detection.hpp"
@@ -24,7 +25,10 @@
 // Neural Networks
 #include "src/eigen3/eigen3.hpp"
 #include "src/nn/activation.hpp"
+#include "src/nn/layer.hpp"
 #include "src/nn/loss.hpp"
+#include "src/nn/model.hpp"
+#include "src/nn/optimizer.hpp"
 
 using namespace std;
 using namespace cv;
@@ -40,13 +44,20 @@ int main() {
     cin.tie(nullptr);
     cout.tie(nullptr);
 
-    MatrixXd Y = MatrixXd::Random(3, 3);
-    MatrixXd A = MatrixXd::Random(3, 3);
+    int d = 784;
+    int d1 = 1000;
+    int d2 = 512;
+    int classes = 10;
 
-    CrossEntropyLoss crossEntropyLoss;
-    const double lossValue = crossEntropyLoss(Y, A);
-    const MatrixXd dA = crossEntropyLoss.derivative(Y, A);
-    cout << "Loss value: " << lossValue << endl;
-    cout << "Derivative of loss: " << dA << endl;
+    vector<unique_ptr<Layer>> layers;
+    layers.push_back(make_unique<ReLU>(d, d1));
+    layers.push_back(make_unique<ReLU>(d1, d2));
+    layers.push_back(make_unique<Softmax>(d2, classes));
+
+    unique_ptr<Loss> loss = make_unique<CrossEntropyLoss>();
+    unique_ptr<Optimizer> optimizer = make_unique<SGD>(1e-3);
+    const nn::Sequential sequential(layers, loss, optimizer);
+
+    cout << sequential << endl;
     return EXIT_SUCCESS;
 }

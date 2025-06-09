@@ -5,7 +5,6 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#include <iostream>
 #include <vector>
 
 #define ms(s, n)      memset(s, n, sizeof(s))
@@ -16,6 +15,7 @@
 
 #define PB push_back
 #define MP make_pair
+#define MU make_unique
 #define F  first
 #define S  second
 
@@ -25,11 +25,8 @@ typedef std::vector<int> vi;
 typedef std::vector<pi> vii;
 typedef std::vector<vi> vvi;
 
-constexpr int MOD = (int) 1e9 + 7;
-constexpr int INF = (int) 1e9 + 1;
+constexpr int MOD = static_cast<int>(1e9) + 7;
+constexpr int INF = static_cast<int>(1e9) + 1;
 constexpr int DEG = (int) 10001;
-
-inline ll gcd(const ll a, const ll b) { return b == 0 ? a : gcd(b, a % b); }
-inline ll lcm(const ll a, const ll b) { return a / gcd(a, b) * b; }
 
 #endif   // MACROS_H

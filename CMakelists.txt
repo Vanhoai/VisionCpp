@@ -54,6 +54,12 @@ add_executable(
         src/nn/activation.hpp
         src/nn/loss.cpp
         src/nn/loss.hpp
+        src/nn/layer.cpp
+        src/nn/layer.hpp
+        src/nn/model.cpp
+        src/nn/model.hpp
+        src/nn/optimizer.cpp
+        src/nn/optimizer.hpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
