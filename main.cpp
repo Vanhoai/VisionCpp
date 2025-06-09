@@ -24,10 +24,12 @@
 // Neural Networks
 #include "src/eigen3/eigen3.hpp"
 #include "src/nn/activation.hpp"
+#include "src/nn/loss.hpp"
 
 using namespace std;
 using namespace cv;
 using namespace Eigen;
+using namespace nn;
 
 const string root = "/Users/aurorastudyvn/Workspace/ML/VisionCpp";
 const string image_path = root + "/image.jpg";
@@ -38,9 +40,13 @@ int main() {
     cin.tie(nullptr);
     cout.tie(nullptr);
 
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
+    MatrixXd Y = MatrixXd::Random(3, 3);
+    MatrixXd A = MatrixXd::Random(3, 3);
 
-    Eigen3Learning::random_matrix_operations();
+    CrossEntropyLoss crossEntropyLoss;
+    const double lossValue = crossEntropyLoss(Y, A);
+    const MatrixXd dA = crossEntropyLoss.derivative(Y, A);
+    cout << "Loss value: " << lossValue << endl;
+    cout << "Derivative of loss: " << dA << endl;
     return EXIT_SUCCESS;
 }
