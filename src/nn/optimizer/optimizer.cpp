@@ -2,7 +2,7 @@
 // Created by VanHoai on 9/6/25.
 //
 
-#include "optimizer.hpp"
+#include "../optimizer/optimizer.hpp"
 
 namespace nn {
     void Optimizer::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {

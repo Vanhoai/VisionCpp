@@ -5,11 +5,13 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
+// Libraries
 #include <Eigen/Core>
 
-#include "layer.hpp"
-#include "loss.hpp"
-#include "optimizer.hpp"
+// Sources
+#include "../layer/layer.hpp"
+#include "../loss/loss.hpp"
+#include "../optimizer/optimizer.hpp"
 
 using namespace std;
 using namespace Eigen;

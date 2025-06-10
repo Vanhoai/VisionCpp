@@ -24,14 +24,14 @@
 
 // Neural Networks
 #include "src/eigen3/eigen3.hpp"
-#include "src/nn/activation.hpp"
-#include "src/nn/layer.hpp"
-#include "src/nn/loss.hpp"
-#include "src/nn/model.hpp"
-#include "src/nn/optimizer.hpp"
+#include "src/nn/activation/activation.hpp"
+#include "src/nn/layer/layer.hpp"
+#include "src/nn/loss/loss.hpp"
+#include "src/nn/model/model.hpp"
+#include "src/nn/optimizer/optimizer.hpp"
 
-// Utilities
-#include "src/utilities/multivariate_normal/multivariate_normal.hpp"
+// Core
+#include "src/core/utilities/multivariate_normal/multivariate_normal.hpp"
 
 using namespace std;
 using namespace cv;

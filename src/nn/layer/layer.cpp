@@ -3,7 +3,6 @@
 //
 
 #include "layer.hpp"
-
 #include <iomanip>
 
 namespace nn {

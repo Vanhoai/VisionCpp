@@ -3,7 +3,6 @@
 //
 
 #include "activation.hpp"
-#include <iostream>
 
 namespace nn {
     // f(x) = max(0, x)

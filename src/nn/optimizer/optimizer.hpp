@@ -5,7 +5,7 @@
 #ifndef OPTIMIZER_HPP
 #define OPTIMIZER_HPP
 
-#include "layer.hpp"
+#include "../layer/layer.hpp"
 
 namespace nn {
 

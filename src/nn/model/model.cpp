@@ -3,7 +3,6 @@
 //
 
 #include "model.hpp"
-
 #include <iomanip>
 
 namespace nn {
@@ -35,7 +34,7 @@ namespace nn {
         os << "\n";
     }
 
-    Sequential::Sequential(vector<unique_ptr<Layer>> &layers,
+    Sequential::Sequential(vector<unique_ptr<nn::Layer>> &layers,
                            unique_ptr<Loss> &loss,
                            unique_ptr<Optimizer> &optimizer) {
         this->layers = std::move(layers);

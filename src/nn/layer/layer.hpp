@@ -5,9 +5,9 @@
 #ifndef LAYER_HPP
 #define LAYER_HPP
 
-#include "activation.hpp"
-
 #include <Eigen/Core>
+
+#include "../activation/activation.hpp"
 
 using namespace std;
 using namespace Eigen;

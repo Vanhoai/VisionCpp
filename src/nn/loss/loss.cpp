@@ -2,9 +2,7 @@
 // Created by VanHoai on 8/6/25.
 //
 
-#include "loss.hpp"
-
-#include <iostream>
+#include "../loss/loss.hpp"
 
 namespace nn {
     double CrossEntropyLoss::operator()(MatrixXd &Y, MatrixXd &A) {
