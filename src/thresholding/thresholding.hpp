@@ -3,7 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "../image_processing.hpp"
+#include "../core/base/image_processing/image_processing.hpp"
 
 /**
  * Thresholding class for image processing.

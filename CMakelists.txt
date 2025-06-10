@@ -16,58 +16,56 @@ add_executable(
         main.cpp
         src/materials.cpp
 
-        # image processing
-        src/filters/blur/blur.cpp
-        src/filters/blur/blur.hpp
-        src/filters/sharpen/sharpen.hpp
-        src/filters/sharpen/sharpen.cpp
-        src/filters/edge_detection/edge_detection.hpp
-        src/filters/edge_detection/edge_detection.cpp
-
         # thresholding
         src/thresholding/thresholding.cpp
         src/thresholding/thresholding.hpp
 
-        # base classes
-        src/image_processing.hpp
-        src/image_processing.cpp
-        src/macros.hpp
+        # core module
+        src/core/macros/macros.hpp # macros
+        
+        src/core/base/image_processing/image_processing.hpp
+        src/core/base/image_processing/image_processing.cpp
 
-        # object detection
-        src/detectors/haar_cascade/haar_cascade.cpp
-        src/detectors/haar_cascade/haar_cascade.hpp
-        src/detectors/hog/hog.cpp
-        src/detectors/hog/hog.hpp
+        # study
+        src/study/eigen3/eigen3.cpp
+        src/study/eigen3/eigen3.hpp
 
-        # feature extraction
-        src/features/features.hpp
-        src/features/features.cpp
-        src/features/sift.cpp
-        src/features/sift.hpp
-        src/tensor/tensor.cpp
-        src/tensor/tensor.hpp
+        # neural networks module
+        src/modules/nn/activation/activation.cpp
+        src/modules/nn/activation/activation.hpp
+        src/modules/nn/loss/loss.cpp
+        src/modules/nn/loss/loss.hpp
+        src/modules/nn/layer/layer.cpp
+        src/modules/nn/layer/layer.hpp
+        src/modules/nn/model/model.cpp
+        src/modules/nn/model/model.hpp
+        src/modules/nn/model/model_v2.cpp
+        src/modules/nn/optimizer/optimizer.cpp
+        src/modules/nn/optimizer/optimizer.hpp
+        src/modules/nn/prepare/prepare.cpp
+        src/modules/nn/prepare/prepare.hpp
 
-        # neural networks
-        src/eigen3/eigen3.cpp
-        src/eigen3/eigen3.hpp
-        src/nn/activation/activation.cpp
-        src/nn/activation/activation.hpp
-        src/nn/loss/loss.cpp
-        src/nn/loss/loss.hpp
-        src/nn/layer/layer.cpp
-        src/nn/layer/layer.hpp
-        src/nn/model/model.cpp
-        src/nn/model/model.hpp
-        src/nn/optimizer/optimizer.cpp
-        src/nn/optimizer/optimizer.hpp
-        src/nn/prepare/prepare.cpp
-        src/nn/prepare/prepare.hpp
+        # preprocessing image module
+        src/modules/preprocessing_image/filters/blur/blur.cpp
+        src/modules/preprocessing_image/filters/blur/blur.hpp
+        src/modules/preprocessing_image/filters/sharpen/sharpen.hpp
+        src/modules/preprocessing_image/filters/sharpen/sharpen.cpp
+        src/modules/preprocessing_image/filters/edge_detection/edge_detection.hpp
+        src/modules/preprocessing_image/filters/edge_detection/edge_detection.cpp
 
+        src/modules/preprocessing_image/detectors/haar_cascade/haar_cascade.cpp
+        src/modules/preprocessing_image/detectors/haar_cascade/haar_cascade.hpp
+        src/modules/preprocessing_image/detectors/hog/hog.cpp
+        src/modules/preprocessing_image/detectors/hog/hog.hpp
+
+        src/modules/preprocessing_image/features/features.hpp
+        src/modules/preprocessing_image/features/features.cpp
+        src/modules/preprocessing_image/features/sift.cpp
+        src/modules/preprocessing_image/features/sift.hpp
 
         # utilities
         src/core/utilities/multivariate_normal/multivariate_normal.cpp
         src/core/utilities/multivariate_normal/multivariate_normal.hpp
-        src/nn/model/model_v2.cpp
 )
 
 target_link_libraries(
