@@ -33,11 +33,15 @@ namespace nn {
             explicit SGD(const double learning_rate)
                 : Optimizer(learning_rate) {}
 
-            friend std::ostream &operator<<(std::ostream &os,
-                                            const SGD &optimizer) {
-                os << "SGD Optimizer with learning rate: "
-                   << optimizer.getLearningRate();
-                return os;
+            void update(Layer &layer, MatrixXd &dW, MatrixXd &db) override {
+                MatrixXd W = layer.getW();
+                MatrixXd b = layer.getB();
+
+                W -= getLearningRate() * dW;
+                b -= getLearningRate() * db;
+
+                layer.setW(W);
+                layer.setB(b);
             }
     };
 

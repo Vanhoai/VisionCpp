@@ -4,6 +4,7 @@
 
 #include "layer.hpp"
 #include <iomanip>
+#include <iostream>
 
 namespace nn {
     Layer::Layer(const int inputDimension, const int outputDimension,
@@ -28,8 +29,11 @@ namespace nn {
     MatrixXd Layer::forward(const MatrixXd &X) {
         const long N = X.rows();
         this->Z = MatrixXd::Zero(N, outputDimension);
-        this->Z = X * W + b;
+        this->A = MatrixXd::Zero(N, outputDimension);
+
+        const MatrixXd B = b.replicate(N, 1);
+        this->Z = X * W + B;
         this->A = (*activation)(Z);
-        return A;
+        return this->A;
     }
 }   // namespace nn

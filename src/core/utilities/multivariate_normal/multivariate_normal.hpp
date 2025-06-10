@@ -54,6 +54,8 @@ namespace utilities {
              */
             MatrixXd random(const VectorXd &mean, const MatrixXd &covariance,
                             const int N);
+
+            std::vector<int> shuffleIndices(const int size);
     };
 
 }   // namespace utilities

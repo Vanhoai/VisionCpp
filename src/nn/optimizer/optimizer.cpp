@@ -9,8 +9,14 @@ namespace nn {
         // W -= eta * dW
         // b -= eta * db
 
-        layer.setW(layer.getW() - learning_rate * dW);
-        layer.setB(layer.getB() - learning_rate * db);
+        MatrixXd W = layer.getW();
+        MatrixXd b = layer.getB();
+
+        W -= learning_rate * dW;
+        b -= learning_rate * db;
+
+        layer.setW(W);
+        layer.setB(b);
     }
 
 }   // namespace nn

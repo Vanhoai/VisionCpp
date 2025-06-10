@@ -35,4 +35,11 @@ namespace utilities {
         return X;
     }
 
+    std::vector<int> MultivariateNormal::shuffleIndices(const int size) {
+        std::vector<int> indices(size);
+        std::iota(indices.begin(), indices.end(), 0);
+        std::shuffle(indices.begin(), indices.end(), generator);
+        return indices;
+    }
+
 }   // namespace utilities

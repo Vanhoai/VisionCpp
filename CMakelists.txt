@@ -67,6 +67,7 @@ add_executable(
         # utilities
         src/core/utilities/multivariate_normal/multivariate_normal.cpp
         src/core/utilities/multivariate_normal/multivariate_normal.hpp
+        src/nn/model/model_v2.cpp
 )
 
 target_link_libraries(

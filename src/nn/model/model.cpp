@@ -3,37 +3,9 @@
 //
 
 #include "model.hpp"
-#include <iomanip>
+#include <iostream>
 
 namespace nn {
-    void drawHorizontalLine(std::ostream &os, const std::vector<int> &widths,
-                            const std::string &corner = "+",
-                            const std::string &horizontal = "-",
-                            const std::string &junction = "+") {
-        os << corner;
-        for (size_t i = 0; i < widths.size(); ++i) {
-            for (int j = 0; j < widths[i] + 2; ++j) {   // +2 for padding
-                os << horizontal;
-            }
-            if (i < widths.size() - 1) {
-                os << junction;
-            }
-        }
-        os << corner << "\n";
-    }
-
-    // Helper function to draw a table row
-    void drawTableRow(std::ostream &os, const std::vector<std::string> &data,
-                      const std::vector<int> &widths,
-                      const std::string &separator = "|") {
-        os << separator;
-        for (size_t i = 0; i < data.size() && i < widths.size(); ++i) {
-            os << " " << std::left << std::setw(widths[i]) << data[i] << " "
-               << separator;
-        }
-        os << "\n";
-    }
-
     Sequential::Sequential(vector<unique_ptr<nn::Layer>> &layers,
                            unique_ptr<Loss> &loss,
                            unique_ptr<Optimizer> &optimizer) {
@@ -48,95 +20,101 @@ namespace nn {
         this->output = MatrixXd();
     }
 
-    MatrixXd Sequential::feedforward(MatrixXd &X) { return {}; }
+    MatrixXd Sequential::feedforward(MatrixXd &X) {
+        this->input = X;
 
-    void Sequential::backpropagation(MatrixXd &Y) {}
-    void Sequential::update() {}
-    void Sequential::fit(MatrixXd &X, MatrixXd &Y, int epochs, int batchSize) {}
+        MatrixXd O = X;
+        for (const auto &layer : layers)
+            O = layer->forward(O);
 
-    MatrixXd Sequential::predict(MatrixXd &X) { return {}; }
-    double Sequential::evaluate(MatrixXd &Y, MatrixXd &A) { return 0.0f; }
+        this->output = O;
+        return O;
+    }
+
+    void Sequential::backpropagation(MatrixXd &Y) {
+        MatrixXd A = this->output;
+
+        MatrixXd dA = this->loss->derivative(Y, A);
+        MatrixXd dZ = MatrixXd::Zero(dA.rows(), dA.cols());
+
+        for (int idx = layers.size() - 1; idx >= 0; --idx) {
+            const unique_ptr<Layer> &layer = layers[idx];
+            dZ = dA.array() * layer->derivativeActivation().array();
+
+            MatrixXd AP;
+            if (idx > 0)
+                AP = layers[idx - 1]->getA();
+            else
+                AP = input;
+
+            MatrixXd dW = AP.transpose() * dZ / batchSize;
+            MatrixXd db = dZ.colwise().sum() / batchSize;
+
+            layer->setDW(dW);
+            layer->setDb(db);
+
+            if (idx > 0)
+                dA = dZ * layer->getW().transpose();
+        }
+    }
+
+    void Sequential::update() {
+        for (const auto &layer : layers) {
+            MatrixXd dW = layer->getDW();
+            MatrixXd db = layer->getDb();
+
+            optimizer->update((*layer), dW, db);
+        }
+    }
+
+    void Sequential::fit(MatrixXd &X, MatrixXd &Y, const int epochs,
+                         const int batchSize) {
+        const int N = static_cast<int>(X.rows());
+        this->batchSize = batchSize;
+
+        for (int epoch = 0; epoch < epochs; ++epoch) {
+
+            for (int start = 0; start < N; start += batchSize) {
+                const int end = min(start + batchSize, N);
+                MatrixXd batchX = X.block(start, 0, end - start, X.cols());
+                MatrixXd batchY = Y.block(start, 0, end - start, Y.cols());
+                this->feedforward(batchX);
+                this->backpropagation(batchY);
+                this->update();
+            }
+
+            if (epoch % 100 == 0) {
+                MatrixXd A = this->predict(X);
+                const double loss = this->loss->operator()(Y, A);
+                const double accuracy = this->evaluate(Y, A);
+                cout << "Epoch: " << epoch << ", Loss: " << loss
+                     << ", Accuracy: " << accuracy << endl;
+            }
+        }
+    }
+
+    MatrixXd Sequential::predict(MatrixXd &X) {
+        MatrixXd O = this->feedforward(X);
+        return O;
+    }
+
+    double Sequential::evaluate(MatrixXd &Y, MatrixXd &A) {
+        const long N = Y.rows();
+        int correct = 0;
+        for (int i = 0; i < N; i++) {
+            int yIndex, aIndex;
+            Y.row(i).maxCoeff(&yIndex);
+            A.row(i).maxCoeff(&aIndex);
+
+            if (yIndex == aIndex)
+                correct++;
+        }
+
+        return static_cast<double>(correct) / N;
+    }
 
     void Sequential::load(const string &path) {}
+
     void Sequential::save(const string &path) {}
-
-    std::ostream &operator<<(std::ostream &os, const Sequential &model) {
-        // Determine maximum widths for each column
-        int nameWith = 12;
-        int inputWidth = 8;
-        int outputWidth = 8;
-        int paramWith = 16;
-
-        for (const auto &layer : model.layers) {
-            std::string layerName = layer->getName();
-            nameWith = std::max(nameWith, static_cast<int>(layerName.length()));
-
-            inputWidth = std::max(
-                inputWidth,
-                static_cast<int>(
-                    std::to_string(layer->getInputDimension()).length()));
-
-            outputWidth = std::max(
-                outputWidth,
-                static_cast<int>(
-                    std::to_string(layer->getOutputDimension()).length()));
-        }
-
-        // Adjust widths with padding
-        nameWith = std::min(nameWith + 2, 20);
-        inputWidth += 2;
-        outputWidth += 2;
-        paramWith += 2;
-
-        const string title = "SEQUENTIAL MODEL";
-        const int totalWidth = nameWith + inputWidth + outputWidth + paramWith +
-                               10;   // 10 = 4 "No" and 6 "+|"
-        const int preSpace = totalWidth / 2 - title.length() / 2;
-        const int posSpace = totalWidth - preSpace - title.length() - 2;
-
-        os << "\n";
-        os << "+" << std::string(totalWidth - 2, '-') << "+\n";
-        os << "|" << std::string(preSpace, ' ') << title
-           << std::string(posSpace, ' ') << "|\n";
-        os << "+" << std::string(totalWidth - 2, '-') << "+\n";
-
-        // Table structure
-        const std::string separator = "+----+" + std::string(nameWith, '-') +
-                                      "+" + std::string(inputWidth, '-') + "+" +
-                                      std::string(outputWidth, '-') + "+" +
-                                      std::string(paramWith, '-') + "+";
-
-        os << "| No |" << std::setw(nameWith) << std::left << " Layer"
-           << "|" << std::setw(inputWidth) << " Input" << "|"
-           << std::setw(outputWidth) << " Output" << "|" << std::setw(paramWith)
-           << " Parameters" << "|\n";
-
-        os << separator << "\n";
-
-        for (size_t i = 0; i < model.layers.size(); ++i) {
-            const auto &layer = *model.layers[i];
-            std::string layerType = layer.getName();
-
-            const int params =
-                layer.getInputDimension() * layer.getOutputDimension() +
-                layer.getOutputDimension();   // W + b
-
-            os << "| " << std::left << "0" << (i + 1) << " |";
-            os << " " << std::setw(nameWith - 1) << std::left << layerType
-               << "|"
-               << " " << std::setw(inputWidth - 1) << std::left
-               << layer.getInputDimension() << "|"
-               << " " << std::setw(outputWidth - 1) << std::left
-               << layer.getOutputDimension() << "|"
-               << " " << std::setw(paramWith - 1) << std::left << params
-               << "|\n";
-
-            if (i < model.layers.size() - 1)
-                os << separator << "\n";
-        }
-
-        os << separator << "\n";
-        return os;
-    }
 
 }   // namespace nn

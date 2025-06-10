@@ -58,8 +58,8 @@ namespace nn {
             MatrixXd feedforward(MatrixXd &X) override;
             void backpropagation(MatrixXd &Y) override;
             void update() override;
-            void fit(MatrixXd &X, MatrixXd &Y, int epochs,
-                     int batchSize) override;
+            void fit(MatrixXd &X, MatrixXd &Y, const int epochs,
+                     const int batchSize) override;
 
             MatrixXd predict(MatrixXd &X) override;
             double evaluate(MatrixXd &Y, MatrixXd &A) override;

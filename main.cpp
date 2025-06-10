@@ -42,23 +42,42 @@ const string root = "/Users/aurorastudyvn/Workspace/ML/VisionCpp";
 const string image_path = root + "/image.jpg";
 const string video_path = root + "/video.mp4";
 
-void prepare() {
+void prepare(const int N, const int groups, const int d, MatrixXd &X,
+             MatrixXd &Y) {
+    X = MatrixXd::Zero(N, d);
+    Y = MatrixXd::Zero(N, groups);
+
     MatrixXd means(4, 2);
     means << 1, 1, 1, 6, 6, 1, 6, 6;
     MatrixXd covariance(2, 2);
     covariance << 1, 0, 0, 1;
 
-    utilities::MultivariateNormal mvn;
-    constexpr int N = 10;
-    const MatrixXd X1 = mvn.random(means.row(0), covariance, N);
-    const MatrixXd X2 = mvn.random(means.row(1), covariance, N);
-    const MatrixXd X3 = mvn.random(means.row(2), covariance, N);
-    const MatrixXd X4 = mvn.random(means.row(3), covariance, N);
+    const int P = N / groups;
 
-    cout << "X1:\n" << X1 << endl;
-    cout << "X2:\n" << X2 << endl;
-    cout << "X3:\n" << X3 << endl;
-    cout << "X4:\n" << X4 << endl;
+    utilities::MultivariateNormal mvn;
+
+    VectorXd y(N);
+    MatrixXd shuffledX(X.rows(), X.cols());
+
+    for (int i = 0; i < groups; ++i) {
+        const MatrixXd Xi = mvn.random(means.row(i), covariance, P);
+        shuffledX.block(i * P, 0, P, d) = Xi;
+        for (int j = 0; j < P; ++j)
+            y(i * P + j) = i;
+    }
+
+    const vector<int> indices = mvn.shuffleIndices(N);
+
+    VectorXd shuffledY(y.size());
+    for (int i = 0; i < N; i++) {
+        X.row(i) = shuffledX.row(indices[i]);
+        shuffledY(i) = y(indices[i]);
+    }
+
+    // transform y to one-hot encoding
+    Y = MatrixXd::Zero(N, groups);
+    for (int i = 0; i < N; ++i)
+        Y(i, static_cast<int>(shuffledY(i))) = 1.0;
 }
 
 int main() {
@@ -66,21 +85,27 @@ int main() {
     cin.tie(nullptr);
     cout.tie(nullptr);
 
-    prepare();
+    constexpr int N = 1000;
+    int d = 2;
+    int d1 = 5;
+    int classes = 4;
 
-    int d = 784;
-    int d1 = 1000;
-    int d2 = 512;
-    int classes = 10;
+    MatrixXd X(N, d);
+    MatrixXd Y(N, classes);
+    prepare(N, classes, d, X, Y);
 
     vector<unique_ptr<Layer>> layers;
     layers.push_back(make_unique<ReLU>(d, d1));
-    layers.push_back(make_unique<ReLU>(d1, d2));
-    layers.push_back(make_unique<Softmax>(d2, classes));
+    layers.push_back(make_unique<Softmax>(d1, classes));
 
     unique_ptr<Loss> loss = make_unique<CrossEntropyLoss>();
     unique_ptr<Optimizer> optimizer = make_unique<SGD>(1e-3);
     nn::Sequential sequential(layers, loss, optimizer);
+
+    constexpr int epochs = 10000;
+    constexpr int batchSize = 256;
+
+    sequential.fit(X, Y, epochs, batchSize);
 
     return EXIT_SUCCESS;
 }

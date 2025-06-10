@@ -34,13 +34,28 @@ namespace nn {
             virtual ~Layer() = default;
             Layer(int inputDimension, int outputDimension,
                   unique_ptr<Activation> activation);
+
             virtual MatrixXd forward(const MatrixXd &X);
+
+            [[nodiscard]] MatrixXd derivativeActivation() const {
+                MatrixXd ZCopy = Z;
+                return activation->derivative(ZCopy);
+            }
 
             [[nodiscard]] MatrixXd getW() const { return W; }
             void setW(const MatrixXd &W) { this->W = W; }
 
             [[nodiscard]] MatrixXd getB() const { return b; }
             void setB(const MatrixXd &b) { this->b = b; }
+
+            [[nodiscard]] MatrixXd getA() const { return A; }
+            void setA(const MatrixXd &A) { this->A = A; }
+
+            [[nodiscard]] MatrixXd getDW() const { return dW; }
+            void setDW(const MatrixXd &dW) { this->dW = dW; }
+
+            [[nodiscard]] MatrixXd getDb() const { return db; }
+            void setDb(const MatrixXd &db) { this->db = db; }
 
             [[nodiscard]] int getInputDimension() const {
                 return inputDimension;
