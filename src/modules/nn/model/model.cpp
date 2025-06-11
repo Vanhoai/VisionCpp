@@ -5,6 +5,8 @@
 #include "model.hpp"
 #include <iostream>
 
+#include "../../../core/utilities/multivariate_normal/multivariate_normal.hpp"
+
 namespace nn {
     Sequential::Sequential(vector<unique_ptr<nn::Layer>> &layers,
                            unique_ptr<Loss> &loss,
@@ -72,18 +74,29 @@ namespace nn {
         const int N = static_cast<int>(X.rows());
         this->batchSize = batchSize;
 
+        utilities::MultivariateNormal mvn;
+        MatrixXd shuffleX = MatrixXd::Zero(X.rows(), X.cols());
+        MatrixXd shuffleY = MatrixXd::Zero(Y.rows(), Y.cols());
+
         for (int epoch = 0; epoch < epochs; ++epoch) {
+            std::vector<int> indices = mvn.shuffleIndices(N);
+            for (int i = 0; i < N; ++i) {
+                shuffleX.row(i) = X.row(indices[i]);
+                shuffleY.row(i) = Y.row(indices[i]);
+            }
 
             for (int start = 0; start < N; start += batchSize) {
                 const int end = min(start + batchSize, N);
-                MatrixXd batchX = X.block(start, 0, end - start, X.cols());
-                MatrixXd batchY = Y.block(start, 0, end - start, Y.cols());
+                MatrixXd batchX =
+                    shuffleX.block(start, 0, end - start, X.cols());
+                MatrixXd batchY =
+                    shuffleY.block(start, 0, end - start, Y.cols());
                 this->feedforward(batchX);
                 this->backpropagation(batchY);
                 this->update();
             }
 
-            if (epoch % 100 == 0) {
+            if (epoch % 10 == 0) {
                 MatrixXd A = this->predict(X);
                 const double loss = this->loss->operator()(Y, A);
                 const double accuracy = this->evaluate(Y, A);

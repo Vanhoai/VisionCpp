@@ -1,0 +1,8 @@
+file(GLOB SRCS *.cpp)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+add_executable(nn ${SRCS})
+
+add_test(NAME test_nn COMMAND nn)

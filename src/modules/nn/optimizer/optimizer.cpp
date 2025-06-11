@@ -19,4 +19,42 @@ namespace nn {
         layer.setB(b);
     }
 
+    void SGD::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
+        const string layerId = getLayerId(layer);
+
+        if (!vW.contains(layerId) || !vB.contains(layerId)) {
+            vW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
+            vB[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+        }
+
+        // Apply L2 regularization
+        if (weight_decay > 0.0) {
+            dW += weight_decay * layer.getW();
+        }
+
+        // Use reference to velocity
+        MatrixXd vW_current = vW[layerId];
+        MatrixXd vB_current = vB[layerId];
+
+        const double eta = getLearningRate();
+
+        if (nesterov) {
+            vW_current = momentum * vW_current - eta * dW;
+            vB_current = momentum * vB_current - eta * db;
+
+            layer.setW(layer.getW() + momentum * vW_current - eta * dW);
+            layer.setB(layer.getB() + momentum * vB_current - eta * db);
+        } else {
+            vW_current = momentum * vW_current - eta * dW;
+            vB_current = momentum * vB_current - eta * db;
+
+            layer.setW(layer.getW() + vW_current);
+            layer.setB(layer.getB() + vB_current);
+        }
+
+        // Save updated velocities
+        vW[layerId] = vW_current;
+        vB[layerId] = vB_current;
+    }
+
 }   // namespace nn

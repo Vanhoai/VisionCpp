@@ -1,2 +1,2 @@
 run:
-	cd build && cmake .. && make && ./vision_cpp & cd ..
+	cd build && cmake .. && make && ./VisionCpp & cd ..
