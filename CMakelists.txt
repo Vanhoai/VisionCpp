@@ -1,90 +1,46 @@
 cmake_minimum_required(VERSION 3.18)
+project(VisionNative
+        VERSION 1.0.0
+        DESCRIPTION "🚀 Advanced C++ Algorithms for Computer Vision & Image Processing"
+        LANGUAGES C CXX
+)
 
-project(VisionCpp VERSION 1.0 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 20)
+# Set the C++ standard
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Use find package when libraries are installed via Homebrew or other package managers
-find_package(OpenCV REQUIRED)
-find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+# Add cmake modules path
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# Options
+option(BUILD_TESTS "Build Tests" OFF)
+option(ENABLE_CUDA "Enable CUDA Support" OFF)
+option(ENABLE_OPENCL "Enable OpenCL Support" OFF)
 
-add_executable(
-        ${PROJECT_NAME}
+if (BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()
 
-        # source files
-        main.cpp
-        src/materials.cpp
+# Include utilities
+include(cmake/Dependencies.cmake)
+include(cmake/CompilerFlags.cmake)
 
-        # thresholding
-        src/thresholding/thresholding.cpp
-        src/thresholding/thresholding.hpp
+# Add subdirectories
+add_subdirectory(src)
+add_subdirectory(apps)
 
-        # core module
-        src/core/macros/macros.hpp # macros
+# Installation
+include(GNUInstallDirs)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-        src/core/base/image_processing/image_processing.hpp
-        src/core/base/image_processing/image_processing.cpp
-
-        # study
-        src/study/eigen3/eigen3.cpp
-        src/study/eigen3/eigen3.hpp
-
-        # neural networks module
-        src/modules/nn/activation/activation.cpp
-        src/modules/nn/activation/activation.hpp
-        src/modules/nn/loss/loss.cpp
-        src/modules/nn/loss/loss.hpp
-        src/modules/nn/layer/layer.cpp
-        src/modules/nn/layer/layer.hpp
-        src/modules/nn/model/model.cpp
-        src/modules/nn/model/model.hpp
-        src/modules/nn/model/model_v2.cpp
-        src/modules/nn/optimizer/optimizer.cpp
-        src/modules/nn/optimizer/optimizer.hpp
-        src/modules/nn/prepare/prepare.cpp
-        src/modules/nn/prepare/prepare.hpp
-
-        # preprocessing image module
-        src/modules/preprocessing_image/filters/blur/blur.cpp
-        src/modules/preprocessing_image/filters/blur/blur.hpp
-        src/modules/preprocessing_image/filters/sharpen/sharpen.hpp
-        src/modules/preprocessing_image/filters/sharpen/sharpen.cpp
-        src/modules/preprocessing_image/filters/edge_detection/edge_detection.hpp
-        src/modules/preprocessing_image/filters/edge_detection/edge_detection.cpp
-
-        src/modules/preprocessing_image/detectors/haar_cascade/haar_cascade.cpp
-        src/modules/preprocessing_image/detectors/haar_cascade/haar_cascade.hpp
-        src/modules/preprocessing_image/detectors/hog/hog.cpp
-        src/modules/preprocessing_image/detectors/hog/hog.hpp
-
-        src/modules/preprocessing_image/features/features.hpp
-        src/modules/preprocessing_image/features/features.cpp
-        src/modules/preprocessing_image/features/sift.cpp
-        src/modules/preprocessing_image/features/sift.hpp
-
-        # utilities
-        src/core/utilities/multivariate_normal/multivariate_normal.cpp
-        src/core/utilities/multivariate_normal/multivariate_normal.hpp
-        src/core/utilities/datasets/datasets.cpp
-        src/core/utilities/datasets/datasets.hpp
-)
-
-#enable_testing()
-
-# FIXME: Add src and refactor later
-#add_subdirectory(tests)
-
-target_link_libraries(
-        ${PROJECT_NAME}
-
-        PRIVATE
-        ${OpenCV_LIBS}
-        Eigen3::Eigen
-        "-framework CoreGraphics"
-        "-framework Foundation"
-
-        PUBLIC
-        # Add any public libraries here
-)
+# Print configuration summary
+message(STATUS "========== Configuration Summary ==========")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+message(STATUS "CUDA support: ${ENABLE_CUDA}")
+message(STATUS "OpenCL support: ${ENABLE_OPENCL}")
+message(STATUS "Build tests: ${BUILD_TESTS}")
+message(STATUS "=========================================")

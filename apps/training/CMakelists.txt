@@ -1,0 +1,29 @@
+cmake_minimum_required(VERSION 3.18)
+project(training VERSION 1.0.0)
+
+add_executable(${PROJECT_NAME}
+        training.hpp
+        training.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        core
+        nn
+        ${OpenCV_LIBS}
+        ${OPENMP_LIBRARIES}
+        Threads::Threads
+        Eigen3::Eigen
+)
+
+# Include directories
+target_include_directories(${PROJECT_NAME}
+        PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/core/include
+)
+
+# Set compiler features
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# Add missing header for std::function
+target_compile_definitions(${PROJECT_NAME} PRIVATE)

@@ -6,11 +6,11 @@
 #include <vector>
 
 // Neural Networks
-#include "src/modules/nn/layer/layer.hpp"
 #include "src/modules/nn/loss/loss.hpp"
 #include "src/modules/nn/model/model.hpp"
 #include "src/modules/nn/optimizer/optimizer.hpp"
 #include "src/modules/nn/prepare/prepare.hpp"
+#include "src/nn/include/layer.hpp"
 
 // Core
 #include "src/core/utilities/multivariate_normal/multivariate_normal.hpp"
