@@ -81,6 +81,6 @@ namespace nn {
             MatrixXd derivative(MatrixXd &X) override;
     };
 
-}   // namespace training
+}   // namespace nn
 
 #endif   // ACTIVATION_HPP

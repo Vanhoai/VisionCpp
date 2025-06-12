@@ -6,24 +6,16 @@
 
 namespace nn {
     // f(x) = max(0, x)
-    MatrixXd ReLUActivation::operator()(MatrixXd &X) {
-        return X.array().max(0.0);
-    }
+    MatrixXd ReLUActivation::operator()(MatrixXd &X) { return X.array().max(0.0); }
 
     // f'(x) = 1 if x > 0, else 0
-    MatrixXd ReLUActivation::derivative(MatrixXd &X) {
-        return (X.array() > 0.0).cast<double>();
-    }
+    MatrixXd ReLUActivation::derivative(MatrixXd &X) { return (X.array() > 0.0).cast<double>(); }
 
     // f(x) = 1 / (1 + exp(-x))
-    MatrixXd SigmoidActivation::operator()(MatrixXd &X) {
-        return 1.0 / (1.0 + (-X.array()).exp());
-    }
+    MatrixXd SigmoidActivation::operator()(MatrixXd &X) { return 1.0 / (1.0 + (-X.array()).exp()); }
 
     // f'(x) = f(x) * (1 - f(x))
-    MatrixXd SigmoidActivation::derivative(MatrixXd &X) {
-        return X.array() * (1.0 - X.array());
-    }
+    MatrixXd SigmoidActivation::derivative(MatrixXd &X) { return X.array() * (1.0 - X.array()); }
 
     // f(x) = exp(x) / sum(exp(x))
     MatrixXd SoftmaxActivation::operator()(MatrixXd &X) {

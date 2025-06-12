@@ -3,6 +3,7 @@
 //
 
 #include "nn/layer.hpp"
+
 #include <iomanip>
 #include <iostream>
 
@@ -36,4 +37,5 @@ namespace nn {
         this->A = (*activation)(Z);
         return this->A;
     }
+
 }   // namespace nn

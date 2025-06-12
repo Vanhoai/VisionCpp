@@ -1,12 +1,15 @@
+cmake_minimum_required(VERSION 3.18)
+project(core LANGUAGES CXX)
+
 # Collect source files
 file(GLOB_RECURSE CORE_HEADERS "include/core/*.hpp")
 file(GLOB_RECURSE CORE_SOURCES "src/*.cpp")
 
 # Create the core library
-add_library(core ${CORE_HEADERS} ${CORE_SOURCES})
+add_library(${PROJECT_NAME} ${CORE_HEADERS} ${CORE_SOURCES})
 
 # Set include directories
-target_include_directories(core
+target_include_directories(${PROJECT_NAME}
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         PUBLIC
@@ -14,7 +17,7 @@ target_include_directories(core
 )
 
 # Link dependencies for use in the core library
-target_link_libraries(core
+target_link_libraries(${PROJECT_NAME}
         PUBLIC
         ${OPENMP_LIBRARIES}
         Threads::Threads
@@ -25,13 +28,13 @@ target_link_libraries(core
 )
 
 # Set compiler features
-target_compile_features(core PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 # Add target definitions
-target_compile_definitions(core PRIVATE CORE_EXPORTS=1)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CORE_EXPORTS=1)
 
 # Set properties
-set_target_properties(core PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
         CXX_VISIBILITY_PRESET hidden
         VISIBILITY_INLINES_HIDDEN ON
@@ -41,7 +44,7 @@ set_target_properties(core PROPERTIES
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     include(GNUInstallDirs)
 
-    install(TARGETS core
+    install(TARGETS ${PROJECT_NAME}
             EXPORT CoreTargets
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

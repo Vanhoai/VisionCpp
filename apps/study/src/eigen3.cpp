@@ -8,7 +8,7 @@
 #include <random>
 #include <vector>
 
-#include "eigen3.hpp"
+#include "study/eigen3.hpp"
 // Include the main Eigen header
 #include <Eigen/Core>
 #include <Eigen/Dense>

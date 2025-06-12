@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.18)
 project(study VERSION 1.0.0)
 
-add_executable(${PROJECT_NAME}
-        study.hpp
-        study.cpp
+file(GLOB_RECURSE NN_HEADERS "include/study/*.hpp")
+file(GLOB_RECURSE NN_SOURCES "src/*.cpp")
+
+add_executable(${PROJECT_NAME} main.cpp ${NN_HEADERS} ${NN_SOURCES})
+
+# Set include directories
+target_include_directories(${PROJECT_NAME}
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -12,6 +20,7 @@ target_link_libraries(${PROJECT_NAME}
         ${OpenCV_LIBS}
         ${OPENMP_LIBRARIES}
         Threads::Threads
+        Eigen3::Eigen
 )
 
 # Include directories
