@@ -3,6 +3,7 @@
 //
 
 #include <iomanip>
+#include <iostream>
 
 #include "nn/model.hpp"
 
@@ -101,5 +102,7 @@ namespace nn {
         os << separator << "\n";
         return os;
     }
+
+    void Sequential::summary() { std::cout << *this; }
 
 }   // namespace nn

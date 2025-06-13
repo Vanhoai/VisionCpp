@@ -74,7 +74,7 @@ namespace nn {
         const int N = static_cast<int>(X.rows());
         this->batchSize = batchSize;
 
-        utilities::MultivariateNormal mvn;
+        core::MultivariateNormal mvn;
         Eigen::MatrixXd shuffleX = Eigen::MatrixXd::Zero(X.rows(), X.cols());
         Eigen::MatrixXd shuffleY = Eigen::MatrixXd::Zero(Y.rows(), Y.cols());
 
@@ -149,7 +149,6 @@ namespace nn {
     }
 
     void Sequential::load(const std::string &path) {}
-
     void Sequential::save(const std::string &path) {}
 
 }   // namespace nn

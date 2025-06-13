@@ -40,6 +40,7 @@ namespace nn {
 
             virtual void load(const std::string &path) = 0;
             virtual void save(const std::string &path) = 0;
+            virtual void summary() = 0;
     };
 
     class Sequential final : public Model {
@@ -69,6 +70,7 @@ namespace nn {
 
             void load(const std::string &path) override;
             void save(const std::string &path) override;
+            void summary() override;
 
             friend std::ostream &operator<<(std::ostream &os, const Sequential &model);
     };

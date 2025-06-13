@@ -6,10 +6,9 @@
 #define PREPARE_HPP
 
 #include <Eigen/Core>
-using namespace Eigen;
 
 namespace nn {
-    void prepare(int N, int groups, int d, MatrixXd &X, MatrixXd &Y);
+    void prepare(int N, int groups, int d, Eigen::MatrixXd &X, Eigen::MatrixXd &Y);
 }
 
 #endif   // PREPARE_HPP
