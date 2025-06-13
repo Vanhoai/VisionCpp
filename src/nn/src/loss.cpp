@@ -5,16 +5,16 @@
 #include "nn/loss.hpp"
 
 namespace nn {
-    double CrossEntropyLoss::operator()(MatrixXd &Y, MatrixXd &A) {
-        const MatrixXd clipped = A.array().max(epsilon).min(1 - epsilon);
-        MatrixXd log = clipped.array().log();
-        const MatrixXd loss = Y.array() * log.array();
-        const VectorXd rowMax = loss.rowwise().sum();
+    double CrossEntropyLoss::operator()(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) {
+        const Eigen::MatrixXd clipped = A.array().max(epsilon).min(1 - epsilon);
+        Eigen::MatrixXd log = clipped.array().log();
+        const Eigen::MatrixXd loss = Y.array() * log.array();
+        const Eigen::VectorXd rowMax = loss.rowwise().sum();
         return -rowMax.mean();
     }
 
     // FIXME: A - Y only works if the activation function is softmax
-    MatrixXd CrossEntropyLoss::derivative(MatrixXd &Y, MatrixXd &A) {
+    Eigen::MatrixXd CrossEntropyLoss::derivative(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) {
         return A.array() - Y.array();
     }
 

@@ -9,15 +9,12 @@
 #include <random>
 #include <vector>
 
-using namespace std;
-using namespace Eigen;
-
 namespace utilities {
 
     class MultivariateNormal {
         private:
-            mt19937 generator;
-            normal_distribution<> normal_distribution;
+            std::mt19937 generator;
+            std::normal_distribution<> normal_distribution;
 
         public:
             explicit MultivariateNormal(const double mean = 0.0,
@@ -46,10 +43,9 @@ namespace utilities {
              * 3. Transform Z to the desired distribution by 𝒩(μ, Σ)
              * formula: x = mean + L * z
              */
-            MatrixXd random(const VectorXd &mean, const MatrixXd &covariance,
-                            const int N);
-
-            std::vector<int> shuffleIndices(const int size);
+            Eigen::MatrixXd random(int N, const Eigen::VectorXd &mean,
+                                   const Eigen::MatrixXd &covariance);
+            std::vector<int> shuffleIndices(int size);
     };
 
 }   // namespace utilities

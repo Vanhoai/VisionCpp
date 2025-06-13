@@ -5,11 +5,9 @@
 #ifndef LAYER_HPP
 #define LAYER_HPP
 
-#include "activation.hpp"
 #include <Eigen/Core>
 
-using namespace std;
-using namespace Eigen;
+#include "activation.hpp"
 
 namespace nn {
 
@@ -20,78 +18,70 @@ namespace nn {
             int outputDimension;
 
             // activation function like: ReLU, Sigmoid, Softmax
-            unique_ptr<Activation> activation;
+            std::unique_ptr<Activation> activation;
 
             // weights and biases
-            MatrixXd W, b;
+            Eigen::MatrixXd W, b;
 
             // props for backpropagation
-            MatrixXd Z, A;
-            MatrixXd dW, db;
+            Eigen::MatrixXd Z, A;
+            Eigen::MatrixXd dW, db;
 
         public:
             virtual ~Layer() = default;
-            Layer(int inputDimension, int outputDimension,
-                  unique_ptr<Activation> activation);
+            Layer(int inputDimension, int outputDimension, std::unique_ptr<Activation> activation);
 
-            virtual MatrixXd forward(const MatrixXd &X);
+            virtual Eigen::MatrixXd forward(const Eigen::MatrixXd &X);
 
-            [[nodiscard]] MatrixXd derivativeActivation() const {
-                MatrixXd ZCopy = Z;
+            [[nodiscard]] Eigen::MatrixXd derivativeActivation() const {
+                Eigen::MatrixXd ZCopy = Z;
                 return activation->derivative(ZCopy);
             }
 
-            [[nodiscard]] MatrixXd getW() const { return W; }
-            void setW(const MatrixXd &W) { this->W = W; }
+            [[nodiscard]] Eigen::MatrixXd getW() const { return W; }
+            void setW(const Eigen::MatrixXd &W) { this->W = W; }
 
-            [[nodiscard]] MatrixXd getB() const { return b; }
-            void setB(const MatrixXd &b) { this->b = b; }
+            [[nodiscard]] Eigen::MatrixXd getB() const { return b; }
+            void setB(const Eigen::MatrixXd &b) { this->b = b; }
 
-            [[nodiscard]] MatrixXd getA() const { return A; }
-            void setA(const MatrixXd &A) { this->A = A; }
+            [[nodiscard]] Eigen::MatrixXd getA() const { return A; }
+            void setA(const Eigen::MatrixXd &A) { this->A = A; }
 
-            [[nodiscard]] MatrixXd getDW() const { return dW; }
-            void setDW(const MatrixXd &dW) { this->dW = dW; }
+            [[nodiscard]] Eigen::MatrixXd getDW() const { return dW; }
+            void setDW(const Eigen::MatrixXd &dW) { this->dW = dW; }
 
-            [[nodiscard]] MatrixXd getDb() const { return db; }
-            void setDb(const MatrixXd &db) { this->db = db; }
+            [[nodiscard]] Eigen::MatrixXd getDb() const { return db; }
+            void setDb(const Eigen::MatrixXd &db) { this->db = db; }
 
-            [[nodiscard]] int getInputDimension() const {
-                return inputDimension;
-            }
+            [[nodiscard]] int getInputDimension() const { return inputDimension; }
 
-            [[nodiscard]] int getOutputDimension() const {
-                return outputDimension;
-            }
+            [[nodiscard]] int getOutputDimension() const { return outputDimension; }
 
-            [[nodiscard]] virtual string getName() const = 0;
+            [[nodiscard]] virtual std::string getName() const = 0;
     };
 
     class ReLU final : public Layer {
         public:
             ReLU(const int inputDimension, const int outputDimension)
-                : Layer(inputDimension, outputDimension,
-                        make_unique<ReLUActivation>()) {}
+                : Layer(inputDimension, outputDimension, std::make_unique<ReLUActivation>()) {}
 
-            [[nodiscard]] string getName() const override { return "ReLU"; }
+            [[nodiscard]] std::string getName() const override { return "ReLU"; }
     };
 
     class Sigmoid final : public Layer {
         public:
             Sigmoid(const int inputDimension, const int outputDimension)
-                : Layer(inputDimension, outputDimension,
-                        make_unique<SigmoidActivation>()) {}
+                : Layer(inputDimension, outputDimension, std::make_unique<SigmoidActivation>()) {}
 
-            [[nodiscard]] string getName() const override { return "Sigmoid"; }
+            [[nodiscard]] std::string getName() const override { return "Sigmoid"; }
     };
 
     class Softmax final : public Layer {
         public:
             Softmax(const int inputDimension, const int outputDimension)
-                : Layer(inputDimension, outputDimension,
-                        make_unique<SoftmaxActivation>()) {}
+                : Layer(inputDimension, outputDimension, std::make_unique<SoftmaxActivation>()) {}
 
-            [[nodiscard]] string getName() const override { return "Softmax"; }
+            [[nodiscard]] std::string getName() const override { return "Softmax"; }
     };
 
 }   // namespace nn

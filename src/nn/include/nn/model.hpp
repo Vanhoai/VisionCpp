@@ -14,9 +14,6 @@
 #include "nn/loss.hpp"
 #include "nn/optimizer.hpp"
 
-using namespace std;
-using namespace Eigen;
-
 namespace nn {
 
     class Model {
@@ -29,49 +26,51 @@ namespace nn {
              * 2. Backward pass: calculate the gradients
              * 3. Update the weights and biases
              */
-            virtual MatrixXd feedforward(MatrixXd &X) = 0;
-            virtual void backpropagation(MatrixXd &Y) = 0;
+            virtual Eigen::MatrixXd feedforward(Eigen::MatrixXd &X) = 0;
+            virtual void backpropagation(Eigen::MatrixXd &Y) = 0;
             virtual void update() = 0;
-            virtual void fit(MatrixXd &X, MatrixXd &Y, int epochs, int batchSize, bool verbose,
-                             int frequency, std::optional<EarlyStopping> earlyStopping) = 0;
+            virtual void fit(Eigen::MatrixXd &X, Eigen::MatrixXd &Y, int epochs, int batchSize,
+                             bool verbose, int frequency,
+                             std::optional<EarlyStopping> earlyStopping) = 0;
 
-            virtual MatrixXd predict(MatrixXd &X) = 0;
+            virtual Eigen::MatrixXd predict(Eigen::MatrixXd &X) = 0;
 
-            virtual double calculateLoss(MatrixXd &Y, MatrixXd &A) = 0;
-            virtual double evaluate(MatrixXd &Y, MatrixXd &A) = 0;
+            virtual double calculateLoss(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) = 0;
+            virtual double evaluate(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) = 0;
 
-            virtual void load(const string &path) = 0;
-            virtual void save(const string &path) = 0;
+            virtual void load(const std::string &path) = 0;
+            virtual void save(const std::string &path) = 0;
     };
 
     class Sequential final : public Model {
         private:
-            vector<unique_ptr<Layer>> layers;
-            unique_ptr<Loss> loss;
-            unique_ptr<Optimizer> optimizer;
+            std::vector<std::unique_ptr<Layer>> layers;
+            std::unique_ptr<Loss> loss;
+            std::unique_ptr<Optimizer> optimizer;
 
             int N, batchSize;
-            MatrixXd input, output;
+            Eigen::MatrixXd input, output;
 
         public:
-            Sequential(vector<unique_ptr<Layer>> &layers, unique_ptr<Loss> &loss,
-                       unique_ptr<Optimizer> &optimizer);
+            Sequential(std::vector<std::unique_ptr<Layer>> &layers, std::unique_ptr<Loss> &loss,
+                       std::unique_ptr<Optimizer> &optimizer);
 
-            MatrixXd feedforward(MatrixXd &X) override;
-            void backpropagation(MatrixXd &Y) override;
+            Eigen::MatrixXd feedforward(Eigen::MatrixXd &X) override;
+            void backpropagation(Eigen::MatrixXd &Y) override;
             void update() override;
-            void fit(MatrixXd &X, MatrixXd &Y, int epochs, int batchSize, bool verbose,
-                     int frequency, optional<EarlyStopping> earlyStopping) override;
+            void fit(Eigen::MatrixXd &X, Eigen::MatrixXd &Y, int epochs, int batchSize,
+                     bool verbose, int frequency,
+                     std::optional<EarlyStopping> earlyStopping) override;
 
-            MatrixXd predict(MatrixXd &X) override;
+            Eigen::MatrixXd predict(Eigen::MatrixXd &X) override;
 
-            double calculateLoss(MatrixXd &Y, MatrixXd &A) override;
-            double evaluate(MatrixXd &Y, MatrixXd &A) override;
+            double calculateLoss(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) override;
+            double evaluate(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) override;
 
-            void load(const string &path) override;
-            void save(const string &path) override;
+            void load(const std::string &path) override;
+            void save(const std::string &path) override;
 
-            friend ostream &operator<<(ostream &os, const Sequential &model);
+            friend std::ostream &operator<<(std::ostream &os, const Sequential &model);
     };
 
 }   // namespace nn

@@ -3,34 +3,33 @@
 //
 
 #include "core/multivariate_normal.hpp"
-#include <Eigen/Dense>
+
+#include <Eigen/Cholesky>
 #include <algorithm>
 
 namespace utilities {
 
-    MatrixXd MultivariateNormal::random(const VectorXd &mean,
-                                        const MatrixXd &covariance,
-                                        const int N) {
+    Eigen::MatrixXd MultivariateNormal::random(const int N, const Eigen::VectorXd &mean,
+                                               const Eigen::MatrixXd &covariance) {
         const int d = mean.size();
 
         // Cholesky decomposition of covariance matrix
-        const LLT<MatrixXd> cholesky_solver(covariance);
-        const MatrixXd L = cholesky_solver.matrixL();
+        const Eigen::LLT<Eigen::MatrixXd> cholesky_solver(covariance);
+        const Eigen::MatrixXd L = cholesky_solver.matrixL();
 
         // Generate standard normal
-        MatrixXd SN(N, d);
+        Eigen::MatrixXd SN(N, d);
 
         for (int i = 0; i < N; ++i) {
-            for (int j = 0; j < d; ++j)
-                SN(i, j) = normal_distribution(generator);
+            for (int j = 0; j < d; ++j) SN(i, j) = normal_distribution(generator);
         }
 
         // Transform to desired distribution: X = mean + L * Z
-        MatrixXd X(N, d);
+        Eigen::MatrixXd X(N, d);
 
         for (int i = 0; i < N; ++i) {
-            VectorXd z = SN.row(i).transpose();
-            VectorXd x = mean + L * z;
+            Eigen::VectorXd z = SN.row(i).transpose();
+            Eigen::VectorXd x = mean + L * z;
             X.row(i) = x.transpose();
         }
 

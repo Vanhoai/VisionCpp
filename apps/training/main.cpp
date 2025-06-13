@@ -13,19 +13,17 @@
 #include "nn/optimizer.hpp"
 #include "nn/prepare.hpp"
 
-using namespace std;
-
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
 
     initParallel();
     setNbThreads(4);
 
     const int threads = omp_get_num_threads();
-    cout << "Number of threads available: " << threads << endl;
-    cout << "Number threads use by Eigen: " << nbThreads() << endl;
+    std::cout << "Number of threads available: " << threads << std::endl;
+    std::cout << "Number threads use by Eigen: " << nbThreads() << std::endl;
 
     constexpr int N = 1000000;
     int d = 2;
@@ -42,9 +40,9 @@ int main() {
     MatrixXd XTest = X.block(T, 0, N - T, d);
     MatrixXd YTest = Y.block(T, 0, N - T, classes);
 
-    vector<unique_ptr<nn::Layer>> layers;
-    layers.push_back(make_unique<nn::ReLU>(d, d1));
-    layers.push_back(make_unique<nn::Softmax>(d1, classes));
+    std::vector<std::unique_ptr<nn::Layer>> layers;
+    layers.push_back(std::make_unique<nn::ReLU>(d, d1));
+    layers.push_back(std::make_unique<nn::Softmax>(d1, classes));
 
     // Hyperparameters
     double learningRate = 1e-3;
@@ -56,13 +54,15 @@ int main() {
     double beta1 = 0.9;
     double beta2 = 0.999;
 
-    unique_ptr<nn::Loss> loss = make_unique<nn::CrossEntropyLoss>();
-    unique_ptr<nn::Optimizer> SGD =
-        make_unique<nn::SGD>(learningRate, momentum, nesterov, weightDecay);
+    std::unique_ptr<nn::Loss> loss = std::make_unique<nn::CrossEntropyLoss>();
+    std::unique_ptr<nn::Optimizer> SGD =
+        std::make_unique<nn::SGD>(learningRate, momentum, nesterov, weightDecay);
 
-    unique_ptr<nn::Optimizer> AdaGrad = make_unique<nn::AdaGrad>(learningRate, epsilon);
-    unique_ptr<nn::Optimizer> RMSProp = make_unique<nn::RMSProp>(learningRate, epsilon, beta);
-    unique_ptr<nn::Optimizer> Adam = make_unique<nn::Adam>(learningRate, epsilon, beta1, beta2);
+    std::unique_ptr<nn::Optimizer> AdaGrad = std::make_unique<nn::AdaGrad>(learningRate, epsilon);
+    std::unique_ptr<nn::Optimizer> RMSProp =
+        std::make_unique<nn::RMSProp>(learningRate, epsilon, beta);
+    std::unique_ptr<nn::Optimizer> Adam =
+        std::make_unique<nn::Adam>(learningRate, epsilon, beta1, beta2);
 
     nn::Sequential sequential(layers, loss, Adam);
     constexpr int epochs = 5;
@@ -76,7 +76,7 @@ int main() {
     MatrixXd O = sequential.predict(XTest);
     const double lossValue = sequential.calculateLoss(YTest, O);
     const double accuracyValue = sequential.evaluate(YTest, O);
-    cout << "Final Loss: " << lossValue << ", Final Accuracy: " << accuracyValue << endl;
+    std::cout << "Final Loss: " << lossValue << ", Final Accuracy: " << accuracyValue << std::endl;
 
     return EXIT_SUCCESS;
 }

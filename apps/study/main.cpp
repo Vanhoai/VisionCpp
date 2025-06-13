@@ -8,9 +8,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
-
 int main() {
-    cout << "Hello, OpenMP!" << endl;
+    std::cout << "Hello, OpenMP!" << std::endl;
     return 0;
 }

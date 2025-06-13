@@ -5,12 +5,12 @@
 #include "nn/optimizer.hpp"
 
 namespace nn {
-    void Optimizer::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
+    void Optimizer::update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) {
         // W -= eta * dW
         // b -= eta * db
 
-        MatrixXd W = layer.getW();
-        MatrixXd b = layer.getB();
+        Eigen::MatrixXd W = layer.getW();
+        Eigen::MatrixXd b = layer.getB();
 
         W -= learningRate * dW;
         b -= learningRate * db;
@@ -19,12 +19,12 @@ namespace nn {
         layer.setB(b);
     }
 
-    void SGD::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
-        const string layerId = getLayerId(layer);
+    void SGD::update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) {
+        const std::string layerId = getLayerId(layer);
 
         if (vW.find(layerId) == vW.end() || vb.find(layerId) == vb.end()) {
-            vW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
-            vb[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+            vW[layerId] = Eigen::MatrixXd::Zero(dW.rows(), dW.cols());
+            vb[layerId] = Eigen::MatrixXd::Zero(db.rows(), db.cols());
         }
 
         // Apply L2 regularization
@@ -33,8 +33,8 @@ namespace nn {
         }
 
         // Use reference to velocity
-        MatrixXd &vW = this->vW[layerId];
-        MatrixXd &vb = this->vb[layerId];
+        Eigen::MatrixXd &vW = this->vW[layerId];
+        Eigen::MatrixXd &vb = this->vb[layerId];
 
         const double eta = getLearningRate();
 
@@ -53,18 +53,18 @@ namespace nn {
         }
     }
 
-    void AdaGrad::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
-        const string layerId = getLayerId(layer);
+    void AdaGrad::update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) {
+        const std::string layerId = getLayerId(layer);
 
         // Initialize if not exists
         if (vW.find(layerId) == vW.end() || vb.find(layerId) == vb.end()) {
-            vW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
-            vb[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+            vW[layerId] = Eigen::MatrixXd::Zero(dW.rows(), dW.cols());
+            vb[layerId] = Eigen::MatrixXd::Zero(db.rows(), db.cols());
         }
 
         // Use references to internal velocity matrices
-        MatrixXd &vW = this->vW[layerId];
-        MatrixXd &vb = this->vb[layerId];
+        Eigen::MatrixXd &vW = this->vW[layerId];
+        Eigen::MatrixXd &vb = this->vb[layerId];
 
         // Accumulate squared gradients
         vW += dW.array().square().matrix();
@@ -72,26 +72,26 @@ namespace nn {
 
         // Compute adaptive updates
         const double eta = getLearningRate();
-        const MatrixXd newW = -eta * dW.array() / (vW.array().sqrt() + epsilon);
-        const MatrixXd newb = -eta * db.array() / (vb.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newW = -eta * dW.array() / (vW.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newb = -eta * db.array() / (vb.array().sqrt() + epsilon);
 
         // Update parameters
         layer.setW(layer.getW() + newW);
         layer.setB(layer.getB() + newb);
     }
 
-    void RMSProp::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
-        const string layerId = getLayerId(layer);
+    void RMSProp::update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) {
+        const std::string layerId = getLayerId(layer);
 
         // Initialize if not exists
         if (vW.find(layerId) == vW.end() || vb.find(layerId) == vb.end()) {
-            vW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
-            vb[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+            vW[layerId] = Eigen::MatrixXd::Zero(dW.rows(), dW.cols());
+            vb[layerId] = Eigen::MatrixXd::Zero(db.rows(), db.cols());
         }
 
         // Use references to internal velocity matrices
-        MatrixXd &vW = this->vW[layerId];
-        MatrixXd &vb = this->vb[layerId];
+        Eigen::MatrixXd &vW = this->vW[layerId];
+        Eigen::MatrixXd &vb = this->vb[layerId];
 
         // Update moving average of squared gradients
         vW = beta * vW.array() + (1 - beta) * dW.array().square();
@@ -99,34 +99,34 @@ namespace nn {
 
         // Apply parameter update with element-wise division
         const double eta = getLearningRate();
-        const MatrixXd newW = -eta * dW.array() / (vW.array().sqrt() + epsilon);
-        const MatrixXd newb = -eta * db.array() / (vb.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newW = -eta * dW.array() / (vW.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newb = -eta * db.array() / (vb.array().sqrt() + epsilon);
 
         // Update parameters
         layer.setW(layer.getW() + newW);
         layer.setB(layer.getB() + newb);
     }
 
-    void Adam::update(Layer &layer, MatrixXd &dW, MatrixXd &db) {
-        const string layerId = getLayerId(layer);
+    void Adam::update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) {
+        const std::string layerId = getLayerId(layer);
 
         // Initialize if not exists
         if (vW.find(layerId) == vW.end()) {
-            mW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
-            mb[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+            mW[layerId] = Eigen::MatrixXd::Zero(dW.rows(), dW.cols());
+            mb[layerId] = Eigen::MatrixXd::Zero(db.rows(), db.cols());
 
-            vW[layerId] = MatrixXd::Zero(dW.rows(), dW.cols());
-            vb[layerId] = MatrixXd::Zero(db.rows(), db.cols());
+            vW[layerId] = Eigen::MatrixXd::Zero(dW.rows(), dW.cols());
+            vb[layerId] = Eigen::MatrixXd::Zero(db.rows(), db.cols());
         }
 
         // Update time step
         this->timeStep++;
 
         // Use references to internal moment and RMS matrices
-        MatrixXd &mW = this->mW[layerId];
-        MatrixXd &mb = this->mb[layerId];
-        MatrixXd &vW = this->vW[layerId];
-        MatrixXd &vb = this->vb[layerId];
+        Eigen::MatrixXd &mW = this->mW[layerId];
+        Eigen::MatrixXd &mb = this->mb[layerId];
+        Eigen::MatrixXd &vW = this->vW[layerId];
+        Eigen::MatrixXd &vb = this->vb[layerId];
 
         // Update moment estimates (m)
         mW = beta1 * mW.array() + (1 - beta1) * dW.array();
@@ -138,16 +138,16 @@ namespace nn {
 
         // Bias correction
         const auto t = static_cast<double>(this->timeStep);
-        MatrixXd mW_hat = mW.array() / (1 - std::pow(beta1, t));
-        MatrixXd vW_hat = vW.array() / (1 - std::pow(beta2, t));
+        Eigen::MatrixXd mW_hat = mW.array() / (1 - std::pow(beta1, t));
+        Eigen::MatrixXd vW_hat = vW.array() / (1 - std::pow(beta2, t));
 
-        MatrixXd mb_hat = mb.array() / (1 - std::pow(beta1, t));
-        MatrixXd vb_hat = vb.array() / (1 - std::pow(beta2, t));
+        Eigen::MatrixXd mb_hat = mb.array() / (1 - std::pow(beta1, t));
+        Eigen::MatrixXd vb_hat = vb.array() / (1 - std::pow(beta2, t));
 
         // Update weights and biases
         const double eta = getLearningRate();
-        const MatrixXd newW = -eta * mW_hat.array() / (vW_hat.array().sqrt() + epsilon);
-        const MatrixXd newb = -eta * mb_hat.array() / (vb_hat.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newW = -eta * mW_hat.array() / (vW_hat.array().sqrt() + epsilon);
+        const Eigen::MatrixXd newb = -eta * mb_hat.array() / (vb_hat.array().sqrt() + epsilon);
 
         layer.setW(layer.getW() + newW);
         layer.setB(layer.getB() + newb);

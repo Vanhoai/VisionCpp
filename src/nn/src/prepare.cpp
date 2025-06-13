@@ -25,12 +25,12 @@ namespace nn {
         MatrixXd shuffledX(X.rows(), X.cols());
 
         for (int i = 0; i < groups; ++i) {
-            const MatrixXd Xi = mvn.random(means.row(i), covariance, P);
+            const MatrixXd Xi = mvn.random(P, means.row(i), covariance);
             shuffledX.block(i * P, 0, P, d) = Xi;
             for (int j = 0; j < P; ++j) y(i * P + j) = i;
         }
 
-        const vector<int> indices = mvn.shuffleIndices(N);
+        const std::vector<int> indices = mvn.shuffleIndices(N);
 
         VectorXd shuffledY(y.size());
         for (int i = 0; i < N; i++) {

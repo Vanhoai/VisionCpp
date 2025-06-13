@@ -10,8 +10,6 @@
 
 #include "layer.hpp"
 
-using namespace std;
-
 namespace nn {
 
     class Optimizer {
@@ -21,14 +19,14 @@ namespace nn {
         public:
             virtual ~Optimizer() = default;
             explicit Optimizer(const double learningRate) : learningRate(learningRate) {}
-            virtual void update(Layer &layer, MatrixXd &dW, MatrixXd &db);
+            virtual void update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db);
 
             [[nodiscard]] double getLearningRate() const { return learningRate; }
             void setLearningRate(const double learningRate) { this->learningRate = learningRate; }
 
-            static string getLayerId(Layer &layer) {
+            static std::string getLayerId(Layer &layer) {
                 const auto address = reinterpret_cast<uintptr_t>(&layer);
-                return to_string(address);
+                return std::to_string(address);
             }
     };
 
@@ -64,8 +62,8 @@ namespace nn {
             bool nesterov;
             double weightDecay;
 
-            map<string, MatrixXd> vW;
-            map<string, MatrixXd> vb;
+            std::map<std::string, Eigen::MatrixXd> vW;
+            std::map<std::string, Eigen::MatrixXd> vb;
 
         public:
             explicit SGD(const double learningRate, const double momentum = 0.9,
@@ -75,7 +73,7 @@ namespace nn {
                   nesterov(nesterov),
                   weightDecay(weight_decay) {}
 
-            void update(Layer &layer, MatrixXd &dW, MatrixXd &db) override;
+            void update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) override;
     };
 
     /**
@@ -95,14 +93,14 @@ namespace nn {
         private:
             double epsilon;
 
-            std::map<string, MatrixXd> vW;
-            std::map<string, MatrixXd> vb;
+            std::map<std::string, Eigen::MatrixXd> vW;
+            std::map<std::string, Eigen::MatrixXd> vb;
 
         public:
             explicit AdaGrad(const double learningRate, const double epsilon = 1e-15)
                 : Optimizer(learningRate), epsilon(epsilon) {}
 
-            void update(Layer &layer, MatrixXd &dW, MatrixXd &db) override;
+            void update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) override;
     };
 
     /**
@@ -122,15 +120,15 @@ namespace nn {
             double epsilon;
             double beta;
 
-            std::map<string, MatrixXd> vW;
-            std::map<string, MatrixXd> vb;
+            std::map<std::string, Eigen::MatrixXd> vW;
+            std::map<std::string, Eigen::MatrixXd> vb;
 
         public:
             explicit RMSProp(const double learningRate, const double epsilon = 1e-15,
                              const double beta = 0.9)
                 : Optimizer(learningRate), epsilon(epsilon), beta(beta) {}
 
-            void update(Layer &layer, MatrixXd &dW, MatrixXd &db) override;
+            void update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) override;
     };
 
     /**
@@ -161,12 +159,12 @@ namespace nn {
             double beta2;
 
             // mean of exponential moving average of gradients
-            std::map<string, MatrixXd> mW;
-            std::map<string, MatrixXd> mb;
+            std::map<std::string, Eigen::MatrixXd> mW;
+            std::map<std::string, Eigen::MatrixXd> mb;
 
             // mean of exponential moving average of squared gradients
-            std::map<string, MatrixXd> vW;
-            std::map<string, MatrixXd> vb;
+            std::map<std::string, Eigen::MatrixXd> vW;
+            std::map<std::string, Eigen::MatrixXd> vb;
 
             int timeStep = 0;   // Time step
 
@@ -175,7 +173,7 @@ namespace nn {
                           const double beta1 = 0.9, const double beta2 = 0.999)
                 : Optimizer(learningRate), epsilon(epsilon), beta1(beta1), beta2(beta2) {}
 
-            void update(Layer &layer, MatrixXd &dW, MatrixXd &db) override;
+            void update(Layer &layer, Eigen::MatrixXd &dW, Eigen::MatrixXd &db) override;
     };
 
 }   // namespace nn

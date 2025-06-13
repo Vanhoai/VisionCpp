@@ -6,14 +6,13 @@
 #define LOSS_HPP
 
 #include <Eigen/Core>
-using namespace Eigen;
 
 namespace nn {
     class Loss {
         public:
             virtual ~Loss() = default;
-            virtual double operator()(MatrixXd &Y, MatrixXd &A) = 0;
-            virtual MatrixXd derivative(MatrixXd &Y, MatrixXd &A) = 0;
+            virtual double operator()(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) = 0;
+            virtual Eigen::MatrixXd derivative(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) = 0;
     };
 
     class CrossEntropyLoss final : public Loss {
@@ -30,7 +29,7 @@ namespace nn {
              *
              * @formula: L(Y, A) = -Σ(Y * log(A))
              */
-            double operator()(MatrixXd &Y, MatrixXd &A) override;
+            double operator()(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) override;
 
             /**
              * Derivative of the cross-entropy loss function
@@ -41,8 +40,8 @@ namespace nn {
              * @notice: if activation function is softmax, this function
              * should return A - Y to simplify the backpropagation
              */
-            MatrixXd derivative(MatrixXd &Y, MatrixXd &A) override;
+            Eigen::MatrixXd derivative(Eigen::MatrixXd &Y, Eigen::MatrixXd &A) override;
     };
-}   // namespace training
+}   // namespace nn
 
 #endif   // LOSS_HPP

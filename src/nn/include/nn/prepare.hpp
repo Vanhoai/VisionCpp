@@ -9,8 +9,7 @@
 using namespace Eigen;
 
 namespace nn {
-    void prepare(const int N, const int groups, const int d, MatrixXd &X,
-             MatrixXd &Y);
+    void prepare(int N, int groups, int d, MatrixXd &X, MatrixXd &Y);
 }
 
 #endif   // PREPARE_HPP

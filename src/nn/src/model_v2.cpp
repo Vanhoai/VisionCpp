@@ -58,7 +58,7 @@ namespace nn {
         outputWidth += 2;
         paramWith += 2;
 
-        const string title = "SEQUENTIAL MODEL";
+        const std::string title = "SEQUENTIAL MODEL";
         const int totalWidth =
             nameWith + inputWidth + outputWidth + paramWith + 10;   // 10 = 4 "No" and 6 "+|"
         const int preSpace = totalWidth / 2 - title.length() / 2;
