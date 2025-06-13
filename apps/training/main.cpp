@@ -27,7 +27,7 @@ int main() {
     cout << "Number of threads available: " << threads << endl;
     cout << "Number threads use by Eigen: " << nbThreads() << endl;
 
-    constexpr int N = 10000;
+    constexpr int N = 1000000;
     int d = 2;
     int d1 = 5;
     int classes = 4;
@@ -46,23 +46,37 @@ int main() {
     layers.push_back(make_unique<nn::ReLU>(d, d1));
     layers.push_back(make_unique<nn::Softmax>(d1, classes));
 
+    // Hyperparameters
+    double learningRate = 1e-3;
+    double momentum = 0.9;
+    bool nesterov = true;
+    double weightDecay = 0.0;
+    double epsilon = 1e-15;
+    double beta = 0.9;
+    double beta1 = 0.9;
+    double beta2 = 0.999;
+
     unique_ptr<nn::Loss> loss = make_unique<nn::CrossEntropyLoss>();
-    unique_ptr<nn::Optimizer> optimizer = make_unique<nn::SGD>(1e-1, 0.9, true, 0.0);
-    nn::Sequential sequential(layers, loss, optimizer);
+    unique_ptr<nn::Optimizer> SGD =
+        make_unique<nn::SGD>(learningRate, momentum, nesterov, weightDecay);
 
-    constexpr int epochs = 30;
+    unique_ptr<nn::Optimizer> AdaGrad = make_unique<nn::AdaGrad>(learningRate, epsilon);
+    unique_ptr<nn::Optimizer> RMSProp = make_unique<nn::RMSProp>(learningRate, epsilon, beta);
+    unique_ptr<nn::Optimizer> Adam = make_unique<nn::Adam>(learningRate, epsilon, beta1, beta2);
+
+    nn::Sequential sequential(layers, loss, Adam);
+    constexpr int epochs = 5;
     constexpr int batchSize = 256;
+    constexpr bool verbose = true;
+    constexpr int frequency = 1;
 
-    const double start =
-        chrono::duration<double>(chrono::system_clock::now().time_since_epoch()).count();
-    sequential.fit(XTrain, YTrain, epochs, batchSize);
-    const double end =
-        chrono::duration<double>(chrono::system_clock::now().time_since_epoch()).count();
-    cout << "Training time: " << (end - start) << " seconds" << endl;
+    const nn::EarlyStopping earlyStopping(10, 1e-3, true, nn::MonitorEarlyStopping::ValidationLoss);
+    sequential.fit(XTrain, YTrain, epochs, batchSize, verbose, frequency, earlyStopping);
 
     MatrixXd O = sequential.predict(XTest);
-    const double accuracy = sequential.evaluate(YTest, O);
-    cout << "Test Accuracy: " << accuracy * 100.0 << "%" << endl;
+    const double lossValue = sequential.calculateLoss(YTest, O);
+    const double accuracyValue = sequential.evaluate(YTest, O);
+    cout << "Final Loss: " << lossValue << ", Final Accuracy: " << accuracyValue << endl;
 
     return EXIT_SUCCESS;
 }

@@ -10,6 +10,7 @@
 
 // Sources
 #include "layer.hpp"
+#include "nn/early_stopping.hpp"
 #include "nn/loss.hpp"
 #include "nn/optimizer.hpp"
 
@@ -31,10 +32,12 @@ namespace nn {
             virtual MatrixXd feedforward(MatrixXd &X) = 0;
             virtual void backpropagation(MatrixXd &Y) = 0;
             virtual void update() = 0;
-            virtual void fit(MatrixXd &X, MatrixXd &Y, int epochs,
-                             int batchSize) = 0;
+            virtual void fit(MatrixXd &X, MatrixXd &Y, int epochs, int batchSize, bool verbose,
+                             int frequency, std::optional<EarlyStopping> earlyStopping) = 0;
 
             virtual MatrixXd predict(MatrixXd &X) = 0;
+
+            virtual double calculateLoss(MatrixXd &Y, MatrixXd &A) = 0;
             virtual double evaluate(MatrixXd &Y, MatrixXd &A) = 0;
 
             virtual void load(const string &path) = 0;
@@ -51,18 +54,20 @@ namespace nn {
             MatrixXd input, output;
 
         public:
-            Sequential(vector<unique_ptr<Layer>> &layers,
-                       unique_ptr<Loss> &loss,
+            Sequential(vector<unique_ptr<Layer>> &layers, unique_ptr<Loss> &loss,
                        unique_ptr<Optimizer> &optimizer);
 
             MatrixXd feedforward(MatrixXd &X) override;
             void backpropagation(MatrixXd &Y) override;
             void update() override;
-            void fit(MatrixXd &X, MatrixXd &Y, const int epochs,
-                     const int batchSize) override;
+            void fit(MatrixXd &X, MatrixXd &Y, int epochs, int batchSize, bool verbose,
+                     int frequency, optional<EarlyStopping> earlyStopping) override;
 
             MatrixXd predict(MatrixXd &X) override;
+
+            double calculateLoss(MatrixXd &Y, MatrixXd &A) override;
             double evaluate(MatrixXd &Y, MatrixXd &A) override;
+
             void load(const string &path) override;
             void save(const string &path) override;
 

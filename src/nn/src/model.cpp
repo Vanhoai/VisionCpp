@@ -3,13 +3,13 @@
 //
 
 #include "nn/model.hpp"
+
 #include <iostream>
 
 #include "core/multivariate_normal.hpp"
 
 namespace nn {
-    Sequential::Sequential(vector<unique_ptr<Layer>> &layers,
-                           unique_ptr<Loss> &loss,
+    Sequential::Sequential(vector<unique_ptr<Layer>> &layers, unique_ptr<Loss> &loss,
                            unique_ptr<Optimizer> &optimizer) {
         this->layers = std::move(layers);
         this->loss = std::move(loss);
@@ -26,8 +26,7 @@ namespace nn {
         this->input = X;
 
         MatrixXd O = X;
-        for (const auto &layer : layers)
-            O = layer->forward(O);
+        for (const auto &layer : layers) O = layer->forward(O);
 
         this->output = O;
         return O;
@@ -69,8 +68,9 @@ namespace nn {
         }
     }
 
-    void Sequential::fit(MatrixXd &X, MatrixXd &Y, const int epochs,
-                         const int batchSize) {
+    void Sequential::fit(MatrixXd &X, MatrixXd &Y, const int epochs, const int batchSize,
+                         const bool verbose, const int frequency,
+                         optional<EarlyStopping> earlyStopping) {
         const int N = static_cast<int>(X.rows());
         this->batchSize = batchSize;
 
@@ -87,21 +87,38 @@ namespace nn {
 
             for (int start = 0; start < N; start += batchSize) {
                 const int end = min(start + batchSize, N);
-                MatrixXd batchX =
-                    shuffleX.block(start, 0, end - start, X.cols());
-                MatrixXd batchY =
-                    shuffleY.block(start, 0, end - start, Y.cols());
+                MatrixXd batchX = shuffleX.block(start, 0, end - start, X.cols());
+                MatrixXd batchY = shuffleY.block(start, 0, end - start, Y.cols());
                 this->feedforward(batchX);
                 this->backpropagation(batchY);
                 this->update();
             }
 
-            if (epoch % 10 == 0) {
+            if (verbose && epoch % frequency == 0) {
                 MatrixXd A = this->predict(X);
                 const double loss = this->loss->operator()(Y, A);
                 const double accuracy = this->evaluate(Y, A);
-                cout << "Epoch: " << epoch << ", Loss: " << loss
-                     << ", Accuracy: " << accuracy << endl;
+                cout << "Epoch: " << epoch << ", Loss: " << loss << ", Accuracy: " << accuracy
+                     << endl;
+
+                if (earlyStopping.has_value()) {
+                    const int numLayer = static_cast<int>(layers.size());
+                    vector<MatrixXd> Ws(numLayer);
+                    vector<MatrixXd> bs(numLayer);
+
+                    if (earlyStopping->on_epoch_end(epoch, accuracy, Ws, bs)) {
+                        cout << "Early stopping at epoch: " << epoch << endl;
+                        if (earlyStopping->getIsStore()) {
+                            // Update best weights and biases
+                            for (int i = 0; i < numLayer; i++) {
+                                layers[i]->setDW(Ws[i]);
+                                layers[i]->setDb(bs[i]);
+                            }
+                        }
+
+                        return;
+                    }
+                }
             }
         }
     }
@@ -109,6 +126,11 @@ namespace nn {
     MatrixXd Sequential::predict(MatrixXd &X) {
         MatrixXd O = this->feedforward(X);
         return O;
+    }
+
+    double Sequential::calculateLoss(MatrixXd &Y, MatrixXd &A) {
+        const double loss = this->loss->operator()(Y, A);
+        return loss;
     }
 
     double Sequential::evaluate(MatrixXd &Y, MatrixXd &A) {
