@@ -4,41 +4,39 @@
 
 #include <omp.h>
 
-#include <chrono>
 #include <iostream>
 
+#include "datasets/datasets.hpp"
 #include "nn/layer.hpp"
 #include "nn/loss.hpp"
 #include "nn/model.hpp"
 #include "nn/optimizer.hpp"
-#include "nn/prepare.hpp"
 
 int main() {
-    std::ios::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
-
-    initParallel();
-    setNbThreads(4);
+    Eigen::initParallel();
+    Eigen::setNbThreads(4);
 
     const int threads = omp_get_num_threads();
     std::cout << "Number of threads available: " << threads << std::endl;
-    std::cout << "Number threads use by Eigen: " << nbThreads() << std::endl;
+    std::cout << "Number threads use by Eigen: " << Eigen::nbThreads() << std::endl;
 
-    constexpr int N = 1000000;
-    int d = 2;
-    int d1 = 5;
-    int classes = 4;
+    constexpr int N = 100000;
+    constexpr int d = 2;
+    constexpr int classes = 8;
 
-    MatrixXd X(N, d);
-    MatrixXd Y(N, classes);
-    nn::prepare(N, classes, d, X, Y);
+    constexpr bool isShuffle = true;
+    Eigen::MatrixXd XTrain, XTest;
+    Eigen::MatrixXd YTrain, YTest;
+    Eigen::MatrixXd covariance(2, 2);
+    covariance << 1, 0, 0, 1;
+    Eigen::MatrixXd mean(classes, d);
+    mean << 1, 1, 1, 6, 1, 12, 6, 1, 12, 6, 6, 6, 6, 12, 12, 12;
 
-    constexpr int T = N * 0.8;
-    MatrixXd XTrain = X.block(0, 0, T, d);
-    MatrixXd YTrain = Y.block(0, 0, T, classes);
-    MatrixXd XTest = X.block(T, 0, N - T, d);
-    MatrixXd YTest = Y.block(T, 0, N - T, classes);
+    datasets::TwoDimensionDataset dataset(N, classes);
+    dataset.setup(mean, covariance);
+    dataset.load(XTrain, YTrain, XTest, YTest, 80, isShuffle);
+
+    int d1 = 10;
 
     std::vector<std::unique_ptr<nn::Layer>> layers;
     layers.push_back(std::make_unique<nn::ReLU>(d, d1));
@@ -65,18 +63,10 @@ int main() {
         std::make_unique<nn::Adam>(learningRate, epsilon, beta1, beta2);
 
     nn::Sequential sequential(layers, loss, Adam);
-    constexpr int epochs = 5;
+
+    constexpr int epochs = 100;
     constexpr int batchSize = 256;
-    constexpr bool verbose = true;
-    constexpr int frequency = 1;
-
-    const nn::EarlyStopping earlyStopping(10, 1e-3, true, nn::MonitorEarlyStopping::ValidationLoss);
-    sequential.fit(XTrain, YTrain, epochs, batchSize, verbose, frequency, earlyStopping);
-
-    MatrixXd O = sequential.predict(XTest);
-    const double lossValue = sequential.calculateLoss(YTest, O);
-    const double accuracyValue = sequential.evaluate(YTest, O);
-    std::cout << "Final Loss: " << lossValue << ", Final Accuracy: " << accuracyValue << std::endl;
+    sequential.fit(XTrain, YTrain, epochs, batchSize, true, 10, std::nullopt);
 
     return EXIT_SUCCESS;
 }

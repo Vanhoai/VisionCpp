@@ -7,15 +7,15 @@
 #include <Eigen/Cholesky>
 #include <algorithm>
 
-namespace utilities {
+namespace core {
 
     Eigen::MatrixXd MultivariateNormal::random(const int N, const Eigen::VectorXd &mean,
                                                const Eigen::MatrixXd &covariance) {
         const int d = mean.size();
 
         // Cholesky decomposition of covariance matrix
-        const Eigen::LLT<Eigen::MatrixXd> cholesky_solver(covariance);
-        const Eigen::MatrixXd L = cholesky_solver.matrixL();
+        const Eigen::LLT<Eigen::MatrixXd> choleskySolver(covariance);
+        const Eigen::MatrixXd L = choleskySolver.matrixL();
 
         // Generate standard normal
         Eigen::MatrixXd SN(N, d);
@@ -43,4 +43,4 @@ namespace utilities {
         return indices;
     }
 
-}   // namespace utilities
+}   // namespace core

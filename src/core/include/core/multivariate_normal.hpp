@@ -9,7 +9,7 @@
 #include <random>
 #include <vector>
 
-namespace utilities {
+namespace core {
 
     class MultivariateNormal {
         private:
@@ -45,9 +45,10 @@ namespace utilities {
              */
             Eigen::MatrixXd random(int N, const Eigen::VectorXd &mean,
                                    const Eigen::MatrixXd &covariance);
+
             std::vector<int> shuffleIndices(int size);
     };
 
-}   // namespace utilities
+}   // namespace core
 
 #endif   // MULTIVARIATE_NORMAL_HPP

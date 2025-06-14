@@ -18,6 +18,8 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE
         core
         nn
+        datasets
+
         ${OpenCV_LIBS}
         ${OPENMP_LIBRARIES}
         Threads::Threads

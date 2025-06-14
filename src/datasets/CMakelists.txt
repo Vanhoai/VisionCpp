@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.30)
 project(datasets LANGUAGES CXX)
 
 # Collect source files
@@ -22,7 +22,9 @@ target_link_libraries(${PROJECT_NAME}
         ${OPENMP_LIBRARIES}
         Threads::Threads
         ${MATH_LIBRARIES}
+
         PRIVATE
+        core
         ${OpenCV_LIBS}
         Eigen3::Eigen
 )
