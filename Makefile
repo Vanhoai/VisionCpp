@@ -1,5 +1,5 @@
 rebuild:
-	cd build && cmake .. && make -j$(nproc) && cd ..
+	cd build && cmake .. -G Ninja && ninja && cd ..
 
 study:
 	cd build/apps/study && ./study && cd ../../../

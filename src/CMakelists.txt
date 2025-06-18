@@ -5,6 +5,7 @@ add_subdirectory(core)
 add_subdirectory(backends)
 add_subdirectory(datasets)
 add_subdirectory(nn)
+add_subdirectory(preprocessing)
 add_subdirectory(vision)
 
 add_library(src INTERFACE)
@@ -15,6 +16,7 @@ target_link_libraries(src
         backends
         datasets
         nn
+        preprocessing
         vision
 )
 
