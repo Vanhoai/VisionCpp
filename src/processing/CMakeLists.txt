@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.30)
-project(preprocessing LANGUAGES C CXX)
+project(processing LANGUAGES C CXX)
 
 # Collect source files
-file(GLOB_RECURSE PREPROCESSING_HEADERS "include/preprocessing/*.hpp")
-file(GLOB_RECURSE PREPROCESSING_SOURCES "src/*.cpp")
+file(GLOB_RECURSE PROCESSING_HEADERS "include/processing/*.hpp")
+file(GLOB_RECURSE PROCESSING_SOURCES "src/*.cpp")
 
-# Create the preprocessing library
-add_library(${PROJECT_NAME} ${PREPROCESSING_HEADERS} ${PREPROCESSING_SOURCES})
+# Create the processing library
+add_library(${PROJECT_NAME} ${PROCESSING_HEADERS} ${PROCESSING_SOURCES})
 
 # Set include directories
 target_include_directories(${PROJECT_NAME}
@@ -16,14 +16,14 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-# Link dependencies for use in the preprocessing library
+# Link dependencies for use in the processing library
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
     core
     ${OPENMP_LIBRARIES}
     Threads::Threads
     ${MATH_LIBRARIES}
-    PRIVATE 
+    PRIVATE
     ${OpenCV_LIBS}
     Eigen3::Eigen
 )
@@ -33,7 +33,7 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 
 # Add target definitions
-target_compile_definitions(${PROJECT_NAME} PRIVATE PREPROCESSING_EXPORTS=1)
+target_compile_definitions(${PROJECT_NAME} PRIVATE PROCESSING_EXPORTS=1)
 
 # Set properties
 set_target_properties(${PROJECT_NAME} PROPERTIES

@@ -2,13 +2,14 @@
 // Created by VanHoai on 8/6/25.
 //
 
+#include "study/eigen3.hpp"
+
 #include <algorithm>
 #include <ctime>
 #include <iostream>
 #include <random>
 #include <vector>
 
-#include "study/eigen3.hpp"
 // Include the main Eigen header
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -54,10 +55,9 @@ void operator_matrix_vector_operation() {
     cout << "Matrix C (A * B):\n" << C << endl;
 
     // Element-wise operations (use .array())
-    const MatrixXd result =
-        A.array() * A.array();                  // Element-wise multiplication
-    const MatrixXd sqrt_A = A.array().sqrt();   // Element-wise square root
-    const MatrixXd exp_A = A.array().exp();     // Element-wise exponential
+    const MatrixXd result = A.array() * A.array();   // Element-wise multiplication
+    const MatrixXd sqrt_A = A.array().sqrt();        // Element-wise square root
+    const MatrixXd exp_A = A.array().exp();          // Element-wise exponential
 
     cout << "Element-wise multiplication of A:\n" << result << endl;
     cout << "Element-wise square root of A:\n" << sqrt_A << endl;
@@ -92,9 +92,7 @@ MatrixXd sigmoidDerivative(MatrixXd &Z) {
 
 MatrixXd relu(const MatrixXd &X) { return X.array().max(0.0); }
 
-MatrixXd relu_derivative(const MatrixXd &x) {
-    return (x.array() > 0.0).cast<double>();
-}
+MatrixXd relu_derivative(const MatrixXd &x) { return (x.array() > 0.0).cast<double>(); }
 
 MatrixXd softmax(MatrixXd &Z) {
     const MatrixXd exp = (Z.array() - Z.maxCoeff()).exp();
@@ -148,8 +146,7 @@ void Eigen3Learning::essential_neural_network_operations() {
     cout << "Softmax of A:\n" << softmax(A) << endl;
     cout << "Softmax row-wise of A:\n" << softmaxRowWise(A) << endl;
 
-    cout << "Cross-entropy loss between A and B: " << cross_entropy_loss(A, B)
-         << endl;
+    cout << "Cross-entropy loss between A and B: " << cross_entropy_loss(A, B) << endl;
     cout << "MSE loss between A and B: " << mse_loss(A, B) << endl;
 }
 
@@ -212,8 +209,7 @@ class MultivariateNormal {
             generator.seed(5);
         }
         // Generate multivariate normal samples
-        MatrixXd sample(const VectorXd &mean, const MatrixXd &cov,
-                        int num_samples) {
+        MatrixXd sample(const VectorXd &mean, const MatrixXd &cov, int num_samples) {
             int dim = mean.size();
             // Cholesky decomposition of covariance matrix
             LLT<MatrixXd> chol_solver(cov);
@@ -246,7 +242,6 @@ class MultivariateNormal {
 };
 
 void Eigen3Learning::random_matrix_operations() {
-
     int num = 50;     // Number of samples per group
     int groups = 4;   // Number of groups
 
