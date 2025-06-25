@@ -13,14 +13,17 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "core.hpp"
+
 namespace core {
 
     std::pair<size_t, size_t> getScreenResolution();
     void showImageCenterWindow(const cv::Mat &image, const std::string &windowName = "Window");
-    void showImageCenterWindow(const Tensor<int> &tensor, const std::string &windowName = "Window");
+    void showImageCenterWindow(const Tensor<float32> &tensor,
+                               const std::string &windowName = "Window");
 
-    void matToTensor(const cv::Mat &src, Tensor<int> &tensor, size_t channels = 3);
-    void tensorToMat(const Tensor<int> &tensor, cv::Mat &dst, size_t channels = 3);
+    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor, int channels = 3);
+    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst, int channels = 3);
 }   // namespace core
 
 #endif   // COMMON_HPP

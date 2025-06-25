@@ -7,9 +7,9 @@
 //
 
 #include <iostream>
-#include <opencv2/core/types.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "core/common.hpp"
 #include "processing/transformations.hpp"
 
 std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.jpg";
@@ -23,42 +23,33 @@ int main() {
 
     // 736 x 920
     std::cout << "Image size: " << image.size() << std::endl;
+    core::Tensor<core::float32> source;
+    core::matToTensor(image, source, 3);
+    core::showImageCenterWindow(source, "Source");
 
-    cv::Mat changed;
-    processing::Transformations::resize(image, changed, cv::Size(500, 500 * 736 / 920));
-    cv::imshow("Workspace", changed);
-    cv::waitKey();
+    core::Tensor<core::float32> changed;
+    processing::Transformations::pad(source, changed, 10, 0.0f);
+    core::showImageCenterWindow(changed, "Padded");
 
-    processing::Transformations::normalize(image, changed, cv::Scalar(0, 0, 0),
-                                           cv::Scalar(1, 1, 1));
-    cv::imshow("Normalized", changed);
-    cv::waitKey();
+    processing::Transformations::crop(source, changed, core::Rect(0, 0, 400, 400));
+    core::showImageCenterWindow(changed, "Cropped");
 
-    processing::Transformations::pad(image, changed, cv::Size(20, 20), cv::Scalar(0, 0, 0));
-    cv::imshow("Padded", changed);
-    cv::waitKey();
+    processing::Transformations::randomCrop(source, changed, 400, 400);
+    core::showImageCenterWindow(changed, "Random Cropped");
 
-    processing::Transformations::crop(image, changed, cv::Rect(100, 100, 300, 300));
-    cv::imshow("Cropped", changed);
-    cv::waitKey();
-
-    processing::Transformations::randomCrop(image, changed, cv::Size(300, 300));
-    cv::imshow("Random Cropped", changed);
-    cv::waitKey();
-
-    processing::Transformations::rotate(image, changed,
+    processing::Transformations::rotate(source, changed,
                                         processing::Transformations::RotateAngle::CLOCKWISE_90);
-    cv::imshow("Rotated 90 degrees", changed);
-    cv::waitKey();
+    core::showImageCenterWindow(changed, "Rotated 90 degrees");
 
-    processing::Transformations::rotate(image, changed,
+    processing::Transformations::rotate(source, changed,
                                         processing::Transformations::RotateAngle::CLOCKWISE_180);
-    cv::imshow("Rotated 180 degrees", changed);
-    cv::waitKey();
+    core::showImageCenterWindow(changed, "Rotated 180 degrees");
 
-    processing::Transformations::flip(image, changed, processing::Transformations::FlipCode::BOTH);
-    cv::imshow("Flipped", changed);
-    cv::waitKey();
+    processing::Transformations::flip(source, changed, processing::Transformations::FlipCode::BOTH);
+    core::showImageCenterWindow(changed, "Flipped Both");
+
+    processing::Transformations::resize(source, changed, 400, 400);
+    core::showImageCenterWindow(changed);
 
     cv::destroyAllWindows();
     return EXIT_SUCCESS;

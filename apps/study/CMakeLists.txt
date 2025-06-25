@@ -23,6 +23,10 @@ target_link_libraries(${PROJECT_NAME}
         ${OPENMP_LIBRARIES}
         Threads::Threads
         Eigen3::Eigen
+
+        # For OS X
+        "-framework CoreGraphics"
+        "-framework Foundation"
 )
 
 # Include directories

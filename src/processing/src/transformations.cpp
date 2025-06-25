@@ -3,20 +3,20 @@
 // Copyright (c) 2025 VanHoai. All rights reserved.
 //
 
-#include "processing/transformations.hpp"
-
 #include <opencv2/opencv.hpp>
+#include <processing/transformations.hpp>
 #include <random>
 #include <stdexcept>
 
 namespace processing {
 
-    void Transformations::convertColorSpace(const cv::Mat& inputImage, cv::Mat& outputImage,
+    void Transformations::convertColorSpace(const core::Tensor<core::float32>& src,
+                                            core::Tensor<core::float32>& dst,
                                             ColorSpace colorSpace) {
         if (colorSpace == ColorSpace::BGR_TO_HSV) {
-            convertBGRToHSV(inputImage, outputImage);
+            convertBGRToHSV(src, dst);
         } else if (colorSpace == ColorSpace::HSV_TO_BGR) {
-            convertHSVtoBGR(inputImage, outputImage);
+            convertHSVtoBGR(src, dst);
         } else {
             throw std::invalid_argument("Unsupported color space conversion");
         }
@@ -42,27 +42,31 @@ namespace processing {
      *
      * - V = Cmax
      */
-    void Transformations::convertBGRToHSV(const cv::Mat& inputImage, cv::Mat& outputImage) {
-        if (inputImage.empty())
+    void Transformations::convertBGRToHSV(const core::Tensor<core::float32>& src,
+                                          core::Tensor<core::float32>& dst) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 3)
+        if (src.shape().size() != 3)
+            throw std::invalid_argument(
+                "Input image must have 3 dimensions (height, width, channels)");
+
+        if (src.shape()[2] != 3)
             throw std::invalid_argument("Input image must be in BGR format (3 channels)");
 
-        outputImage = cv::Mat(inputImage.size(), CV_8UC3);
-        for (int i = 0; i < inputImage.rows; i++) {
-            for (int j = 0; j < inputImage.cols; j++) {
-                const auto& pixel = inputImage.at<cv::Vec3b>(i, j);
+        dst = core::Tensor<core::float32>(src.shape());
 
-                float B = pixel[0] / 255.0f;   // Blue
-                float G = pixel[1] / 255.0f;   // Green
-                float R = pixel[2] / 255.0f;   // Red
+        for (size_t i = 0; i < src.shape()[0]; i++) {
+            for (size_t j = 0; j < src.shape()[1]; j++) {
+                float B = src.at(i, j, 0) / 255.0f;   // Blue
+                float G = src.at(i, j, 1) / 255.0f;   // Green
+                float R = src.at(i, j, 2) / 255.0f;   // Red
 
-                float Cmax = std::max({R, G, B});
-                float Cmin = std::min({R, G, B});
-                float delta = Cmax - Cmin;
+                const float Cmax = std::max({R, G, B});
+                const float Cmin = std::min({R, G, B});
+                const float delta = Cmax - Cmin;
 
-                float H, S, V;
+                float H, S;
                 if (delta == 0) {
                     H = 0;   // Undefined hue
                 } else if (Cmax == R) {
@@ -79,13 +83,10 @@ namespace processing {
                     S = delta / Cmax;
                 }
 
-                V = Cmax;
-
-                outputImage.at<cv::Vec3b>(i, j) =
-                    cv::Vec3b(static_cast<uchar>(H * 255 / 360),   // Hue
-                              static_cast<uchar>(S * 255),         // Saturation
-                              static_cast<uchar>(V * 255)          // Value
-                    );
+                const float V = Cmax;
+                dst.at(i, j, 0) = H * 255 / 360;   // Hue in [0, 360] scaled to [0, 255]
+                dst.at(i, j, 1) = S * 255;         // Saturation in [0, 1] scaled to [0, 255]
+                dst.at(i, j, 2) = V * 255;         // Value in [0, 1] scaled to [0, 255]
             }
         }
     }
@@ -114,21 +115,25 @@ namespace processing {
      * - G = (G' + m) * 255
      * - R = (R' + m) * 255
      */
-    void Transformations::convertHSVtoBGR(const cv::Mat& inputImage, cv::Mat& outputImage) {
-        if (inputImage.empty())
+    void Transformations::convertHSVtoBGR(const core::Tensor<core::float32>& src,
+                                          core::Tensor<core::float32>& dst) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 3)
+        if (src.shape().size() != 3)
+            throw std::invalid_argument(
+                "Input image must have 3 dimensions (height, width, channels)");
+
+        if (src.shape()[2] != 3)
             throw std::invalid_argument("Input image must be in HSV format (3 channels)");
 
-        outputImage = cv::Mat(inputImage.size(), CV_8UC3);
-        for (int i = 0; i < inputImage.rows; i++) {
-            for (int j = 0; j < inputImage.cols; j++) {
-                const auto& pixel = inputImage.at<cv::Vec3b>(i, j);
+        dst = core::Tensor<core::float32>(src.shape());
 
-                float H = pixel[0] * 360 / 255.0f;   // Hue
-                float S = pixel[1] / 255.0f;         // Saturation
-                float V = pixel[2] / 255.0f;         // Value
+        for (size_t i = 0; i < src.shape()[0]; i++) {
+            for (size_t j = 0; j < src.shape()[1]; j++) {
+                const float H = src.at(i, j, 0) * 360 / 255.0f;   // Hue
+                const float S = src.at(i, j, 1) / 255.0f;         // Saturation
+                const float V = src.at(i, j, 2) / 255.0f;         // Value
 
                 float C = V * S;
                 float X = C * (1 - fabs(fmod(H / 60.0f, 2) - 1));
@@ -162,140 +167,190 @@ namespace processing {
                     B_prime = X;
                 }
 
-                auto R = static_cast<uchar>((R_prime + m) * 255);
-                auto G = static_cast<uchar>((G_prime + m) * 255);
-                auto B = static_cast<uchar>((B_prime + m) * 255);
-                outputImage.at<cv::Vec3b>(i, j) = cv::Vec3b(B, G, R);
+                const auto R = static_cast<uchar>((R_prime + m) * 255);
+                const auto G = static_cast<uchar>((G_prime + m) * 255);
+                const auto B = static_cast<uchar>((B_prime + m) * 255);
+
+                dst.at(i, j, 0) = B;   // Blue
+                dst.at(i, j, 1) = G;   // Green
+                dst.at(i, j, 2) = R;   // Red
             }
         }
     }
 
-    void Transformations::convertToGrayScale(const cv::Mat& inputImage, cv::Mat& outputImage) {
-        // inputImage: BGR format like OpenCV saved
-        if (inputImage.empty())
+    void Transformations::convertToGrayScale(const core::Tensor<core::float32>& src,
+                                             core::Tensor<core::float32>& dst) {
+        // src: BGR format like OpenCV saved
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 3)
+        if (src.shape().size() != 3)
+            throw std::invalid_argument(
+                "Input image must have 3 dimensions (height, width, channels)");
+
+        if (src.shape()[2] != 3)
             throw std::invalid_argument("Input image must be in BGR format (3 channels)");
 
         // Convert to grayscale using the formula
         // F(R, G, B) = 0.299 * R + 0.587 * G + 0.114 * B
 
-        outputImage = cv::Mat(inputImage.size(), CV_8UC1);
-        for (int i = 0; i < inputImage.rows; ++i) {
-            for (int j = 0; j < inputImage.cols; ++j) {
-                const auto& pixel = inputImage.at<cv::Vec3b>(i, j);
-                auto grayValue = static_cast<uchar>(0.299 * pixel[2] +   // R
-                                                    0.587 * pixel[1] +   // G
-                                                    0.114 * pixel[0]     // B
-                );
+        dst = core::Tensor<core::float32>(src.shape()[0], src.shape()[1]);
 
-                outputImage.at<uchar>(i, j) = grayValue;
+        for (size_t i = 0; i < src.shape()[0]; ++i) {
+            for (size_t j = 0; j < src.shape()[1]; ++j) {
+                const core::float32 grayValue =
+                    0.299f * src.at(i, j, 2) + 0.587f * src.at(i, j, 1) + 0.114f * src.at(i, j, 0);
+
+                dst.at(i, j) = grayValue;
             }
         }
     }
 
-    void Transformations::resize(const cv::Mat& inputImage, cv::Mat& outputImage,
-                                 const cv::Size& newSize) {
-        if (inputImage.empty())
+    void Transformations::resize(const core::Tensor<core::float32>& src,
+                                 core::Tensor<core::float32>& dst, const size_t width,
+                                 const size_t height) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (newSize.width <= 0 || newSize.height <= 0)
+        if (width <= 0 || height <= 0)
             throw std::invalid_argument("New size must be positive");
 
-        outputImage = cv::Mat(newSize, inputImage.type());
+        dst = core::Tensor<core::float32>(height, width, src.shape()[2]);
 
         // calculate scale factors
-        double scaleX = static_cast<double>(inputImage.cols) / newSize.width;
-        double scaleY = static_cast<double>(inputImage.rows) / newSize.height;
+        const double scaleY = static_cast<double>(src.shape()[0]) / height;
+        const double scaleX = static_cast<double>(src.shape()[1]) / width;
 
-        for (int y = 0; y < newSize.height; y++) {
-            for (int x = 0; x < newSize.width; x++) {
+        for (size_t y = 0; y < height; y++) {
+            for (size_t x = 0; x < width; x++) {
                 // calculate the corresponding pixel in the input image
-                int srcX = static_cast<int>(x * scaleX);
-                int srcY = static_cast<int>(y * scaleY);
+                auto srcX = static_cast<size_t>(x * scaleX);
+                auto srcY = static_cast<size_t>(y * scaleY);
 
                 // ensure srcX and srcY are within bounds
-                if (srcX >= inputImage.cols)
-                    srcX = inputImage.cols - 1;
-                if (srcY >= inputImage.rows)
-                    srcY = inputImage.rows - 1;
+                if (srcX >= src.shape()[1])
+                    srcX = src.shape()[1] - 1;
+                if (srcY >= src.shape()[0])
+                    srcY = src.shape()[0] - 1;
 
-                outputImage.at<cv::Vec3b>(y, x) = inputImage.at<cv::Vec3b>(srcY, srcX);
-            }
-        }
-    }
-
-    void Transformations::normalize(const cv::Mat& inputImage, cv::Mat& outputImage,
-                                    const cv::Scalar& mean, const cv::Scalar& std) {
-        if (inputImage.empty())
-            throw std::invalid_argument("Input image is not empty");
-
-        outputImage = inputImage.clone();
-        for (int y = 0; y < inputImage.rows; y++) {
-            for (int x = 0; x < inputImage.cols; x++) {
-                for (int c = 0; c < inputImage.channels(); c++) {
-                    // Normalize each channel
-                    uchar pixel = inputImage.at<cv::Vec3b>(y, x)[c];
-
-                    // Apply normalization formula: (pixel - mean) / std
-                    double v = (pixel - mean[c]) / std[c];
-                    outputImage.at<cv::Vec3b>(y, x)[c] = cv::saturate_cast<uchar>(v);
+                if (src.shape()[2] == 1) {
+                    // Case 1: 1 channel
+                    dst.at(y, x) = src.at(srcY, srcX);
+                } else if (src.shape()[2] == 3) {
+                    // Case 2: 3 channels
+                    dst.at(y, x, 0) = src.at(srcY, srcX, 0);   // Blue
+                    dst.at(y, x, 1) = src.at(srcY, srcX, 1);   // Green
+                    dst.at(y, x, 2) = src.at(srcY, srcX, 2);   // Red
+                } else {
+                    throw std::invalid_argument("Unsupported number of channels for resizing");
                 }
             }
         }
     }
 
-    void Transformations::pad(const cv::Mat& inputImage, cv::Mat& outputImage,
-                              const cv::Size& paddingSize, const cv::Scalar& value) {
-        if (inputImage.empty())
+    void Transformations::normalize(const core::Tensor<core::float32>& src,
+                                    core::Tensor<core::float32>& dst,
+                                    const std::vector<core::float32>& mean,
+                                    const std::vector<core::float32>& std) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        int top = paddingSize.height;
-        int bottom = paddingSize.height;
-        int left = paddingSize.width;
-        int right = paddingSize.width;
+        dst = src.clone();
 
-        outputImage = cv::Mat(inputImage.rows + top + bottom, inputImage.cols + left + right,
-                              inputImage.type(), value);
+        for (size_t y = 0; y < src.shape()[0]; y++) {
+            for (size_t x = 0; x < src.shape()[1]; x++) {
+                for (size_t c = 0; c < src.shape()[2]; c++) {
+                    // Normalize each channel
+                    const core::float32 pixel = src.at(y, x, c);
 
-        for (int y = 0; y < inputImage.rows; y++) {
-            for (int x = 0; x < inputImage.cols; x++) {
-                outputImage.at<cv::Vec3b>(y + top, x + left) = inputImage.at<cv::Vec3b>(y, x);
+                    // Apply normalization formula: (pixel - mean) / std
+                    const core::float32 v = (pixel - mean[c]) / std[c];
+                    dst.at(y, x, c) = v;
+                }
             }
         }
     }
 
-    void Transformations::crop(const cv::Mat& inputImage, cv::Mat& outputImage,
-                               const cv::Rect& roi) {
-        if (roi.x < 0 || roi.y < 0 || roi.x + roi.width > inputImage.cols ||
-            roi.y + roi.height > inputImage.rows)
+    void Transformations::pad(const core::Tensor<core::float32>& src,
+                              core::Tensor<core::float32>& dst, const core::float32 padding,
+                              const core::float32 value) {
+        if (src.empty())
+            throw std::invalid_argument("Input image is not empty");
+
+        const size_t height = src.shape()[0] + padding * 2;
+        const size_t width = src.shape()[1] + padding * 2;
+
+        if (src.shape()[2] == 1)
+            dst = core::Tensor({height, width}, value);
+        else if (src.shape()[2] == 3)
+            dst = core::Tensor({height, width, src.shape()[2]}, value);
+        else
+            throw std::invalid_argument("Unsupported number of channels for padding");
+
+        for (size_t y = 0; y < src.shape()[0]; y++) {
+            for (size_t x = 0; x < src.shape()[1]; x++) {
+                // Case 1: 1 channels
+                if (src.shape()[2] == 1)
+                    dst.at(y + padding, x + padding) = src.at(y, x);
+                else if (src.shape()[2] == 3) {
+                    // Case 2: 3 channels
+                    dst.at(y + padding, x + padding, 0) = src.at(y, x, 0);   // Blue
+                    dst.at(y + padding, x + padding, 1) = src.at(y, x, 1);   // Green
+                    dst.at(y + padding, x + padding, 2) = src.at(y, x, 2);   // Red
+                } else {
+                    throw std::invalid_argument("Unsupported number of channels for padding");
+                }
+            }
+        }
+    }
+
+    void Transformations::crop(const core::Tensor<core::float32>& src,
+                               core::Tensor<core::float32>& dst, const core::Rect& roi) {
+        if (roi.x < 0 || roi.y < 0 || roi.x + roi.width > src.shape()[1] ||
+            roi.y + roi.height > src.shape()[0])
             throw std::invalid_argument("ROI is out of bounds of the input image");
 
-        outputImage = cv::Mat(roi.height, roi.width, inputImage.type());
-        for (int y = 0; y < outputImage.rows; y++) {
-            for (int x = 0; x < outputImage.cols; x++) {
-                int srcX = roi.x + x;
-                int srcY = roi.y + y;
+        if (src.shape()[2] == 1)
+            dst = core::Tensor<core::float32>(roi.height, roi.width, 1);
+        else if (src.shape()[2] == 3)
+            dst = core::Tensor<core::float32>(roi.height, roi.width, 3);
+        else
+            throw std::invalid_argument("Unsupported number of channels for cropping");
 
-                if (srcX >= inputImage.cols || srcY >= inputImage.rows)
+        for (size_t y = 0; y < dst.shape()[0]; y++) {
+            for (size_t x = 0; x < dst.shape()[1]; x++) {
+                const size_t srcX = roi.x + x;
+                const size_t srcY = roi.y + y;
+
+                if (srcX >= src.shape()[1] || srcY >= src.shape()[0])
                     throw std::out_of_range("Source coordinates are out of bounds");
 
-                outputImage.at<cv::Vec3b>(y, x) = inputImage.at<cv::Vec3b>(srcY, srcX);
+                if (src.shape()[2] == 1) {
+                    // Case 1: 1 channel
+                    dst.at(y, x) = src.at(srcY, srcX);
+                } else if (src.shape()[2] == 3) {
+                    // Case 2: 3 channels
+                    dst.at(y, x, 0) = src.at(srcY, srcX, 0);   // Blue
+                    dst.at(y, x, 1) = src.at(srcY, srcX, 1);   // Green
+                    dst.at(y, x, 2) = src.at(srcY, srcX, 2);   // Red
+                } else {
+                    throw std::invalid_argument("Unsupported number of channels for cropping");
+                }
             }
         }
     }
 
-    void Transformations::randomCrop(const cv::Mat& inputImage, cv::Mat& outputImage,
-                                     const cv::Size& cropSize) {
-        if (inputImage.empty())
+    void Transformations::randomCrop(const core::Tensor<core::float32>& src,
+                                     core::Tensor<core::float32>& dst, const size_t width,
+                                     const size_t height) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (cropSize.width > inputImage.cols || cropSize.height > inputImage.rows)
+        if (width > src.shape()[1] || height > src.shape()[0])
             throw std::invalid_argument("Crop size must be smaller than input image size");
 
-        int maxX = inputImage.cols - cropSize.width;
-        int maxY = inputImage.rows - cropSize.height;
+        const int maxX = src.shape()[1] - width;
+        const int maxY = src.shape()[0] - height;
 
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -303,55 +358,116 @@ namespace processing {
         std::uniform_int_distribution<> disX(0, maxX);   // random [0, maxX]
         std::uniform_int_distribution<> disY(0, maxY);   // random [0, maxY]
 
-        int x = disX(gen);
-        int y = disY(gen);
+        const int x = disX(gen);
+        const int y = disY(gen);
 
-        crop(inputImage, outputImage, cv::Rect(x, y, cropSize.width, cropSize.height));
+        crop(src, dst, core::Rect(x, y, width, height));
     }
 
-    void Transformations::rotate(const cv::Mat& inputImage, cv::Mat& outputImage,
-                                 RotateAngle angle) {
-        if (inputImage.empty())
+    void Transformations::rotate(const core::Tensor<core::float32>& src,
+                                 core::Tensor<core::float32>& dst, RotateAngle angle) {
+        if (src.empty())
             throw std::invalid_argument("Input image is empty");
 
         if (angle == RotateAngle::CLOCKWISE_90) {
-            outputImage = cv::Mat(inputImage.cols, inputImage.rows, inputImage.type());
-            for (int y = 0; y < inputImage.rows; ++y)
-                for (int x = 0; x < inputImage.cols; ++x)
-                    outputImage.at<cv::Vec3b>(x, inputImage.rows - y - 1) =
-                        inputImage.at<cv::Vec3b>(y, x);
+            dst = core::Tensor<core::float32>(src.shape()[1], src.shape()[0], src.shape()[2]);
+
+            for (size_t y = 0; y < src.shape()[0]; ++y) {
+                for (size_t x = 0; x < src.shape()[1]; ++x) {
+                    // dst.at<cv::Vec3b>(x, src.shape()[0] - y - 1) = src.at<cv::Vec3b>(y, x);
+
+                    if (src.shape()[2] == 1) {
+                        // Case 1: 1 channel
+                        dst.at(x, src.shape()[0] - y - 1) = src.at(y, x);
+                    } else if (src.shape()[2] == 3) {
+                        // Case 2: 3 channels
+                        dst.at(x, src.shape()[0] - y - 1, 0) = src.at(y, x, 0);   // Blue
+                        dst.at(x, src.shape()[0] - y - 1, 1) = src.at(y, x, 1);   // Green
+                        dst.at(x, src.shape()[0] - y - 1, 2) = src.at(y, x, 2);   // Red
+                    } else {
+                        throw std::invalid_argument("Unsupported number of channels for rotation");
+                    }
+                }
+            }
+
         } else if (angle == RotateAngle::CLOCKWISE_180) {
-            outputImage = inputImage.clone();
-            for (int y = 0; y < inputImage.rows; ++y)
-                for (int x = 0; x < inputImage.cols; ++x)
-                    outputImage.at<cv::Vec3b>(inputImage.rows - y - 1, inputImage.cols - x - 1) =
-                        inputImage.at<cv::Vec3b>(y, x);
+            dst = src.clone();
+
+            for (size_t y = 0; y < src.shape()[0]; ++y) {
+                for (size_t x = 0; x < src.shape()[1]; ++x) {
+                    // dst.at<cv::Vec3b>(src.shape()[0] - y - 1, src.shape()[1] - x - 1) =
+                    //     src.at<cv::Vec3b>(y, x);
+
+                    if (src.shape()[2] == 1) {
+                        // Case 1: 1 channel
+                        dst.at(src.shape()[0] - y - 1, src.shape()[1] - x - 1) = src.at(y, x);
+                    } else if (src.shape()[2] == 3) {
+                        // Case 2: 3 channels
+                        dst.at(src.shape()[0] - y - 1, src.shape()[1] - x - 1, 0) =
+                            src.at(y, x, 0);   // Blue
+                        dst.at(src.shape()[0] - y - 1, src.shape()[1] - x - 1, 1) =
+                            src.at(y, x, 1);   // Green
+                        dst.at(src.shape()[0] - y - 1, src.shape()[1] - x - 1, 2) =
+                            src.at(y, x, 2);   // Red
+                    } else {
+                        throw std::invalid_argument("Unsupported number of channels for rotation");
+                    }
+                }
+            }
+
         } else if (angle == RotateAngle::CLOCKWISE_270) {
-            outputImage = cv::Mat(inputImage.cols, inputImage.rows, inputImage.type());
-            for (int y = 0; y < inputImage.rows; ++y)
-                for (int x = 0; x < inputImage.cols; ++x)
-                    outputImage.at<cv::Vec3b>(inputImage.cols - x - 1, y) =
-                        inputImage.at<cv::Vec3b>(y, x);
+            dst = core::Tensor<core::float32>(src.shape()[1], src.shape()[0], src.shape()[2]);
+
+            for (size_t y = 0; y < src.shape()[0]; ++y) {
+                for (size_t x = 0; x < src.shape()[1]; ++x) {
+                    // dst.at<cv::Vec3b>(src.shape()[1] - x - 1, y) = src.at<cv::Vec3b>(y, x);
+
+                    if (src.shape()[2] == 1) {
+                        // Case 1: 1 channel
+                        dst.at(src.shape()[1] - x - 1, y) = src.at(y, x);
+                    } else if (src.shape()[2] == 3) {
+                        // Case 2: 3 channels
+                        dst.at(src.shape()[1] - x - 1, y, 0) = src.at(y, x, 0);   // Blue
+                        dst.at(src.shape()[1] - x - 1, y, 1) = src.at(y, x, 1);   // Green
+                        dst.at(src.shape()[1] - x - 1, y, 2) = src.at(y, x, 2);   // Red
+                    } else {
+                        throw std::invalid_argument("Unsupported number of channels for rotation");
+                    }
+                }
+            }
+
         } else {
             throw std::invalid_argument("Only 90, 180, 270 degrees supported for manual rotation");
         }
     }
 
-    void Transformations::flip(const cv::Mat& inputImage, cv::Mat& outputImage, FlipCode flipCode) {
-        if (inputImage.empty())
+    void Transformations::flip(const core::Tensor<core::float32>& src,
+                               core::Tensor<core::float32>& dst, FlipCode flipCode) {
+        if (src.empty())
             throw std::invalid_argument("Input image is empty");
 
-        outputImage = inputImage.clone();
-        for (int y = 0; y < outputImage.rows; y++) {
-            for (int x = 0; x < outputImage.cols; x++) {
-                int newX = (flipCode == FlipCode::HORIZONTAL || flipCode == FlipCode::BOTH)
-                               ? inputImage.cols - x - 1
-                               : x;
-                int newY = (flipCode == FlipCode::VERTICAL || flipCode == FlipCode::BOTH)
-                               ? inputImage.rows - y - 1
-                               : y;
+        dst = src.clone();
+        for (size_t y = 0; y < dst.shape()[0]; y++) {
+            for (size_t x = 0; x < dst.shape()[1]; x++) {
+                const int newX = (flipCode == FlipCode::HORIZONTAL || flipCode == FlipCode::BOTH)
+                                     ? src.shape()[1] - x - 1
+                                     : x;
+                const int newY = (flipCode == FlipCode::VERTICAL || flipCode == FlipCode::BOTH)
+                                     ? src.shape()[0] - y - 1
+                                     : y;
 
-                outputImage.at<cv::Vec3b>(newY, newX) = inputImage.at<cv::Vec3b>(y, x);
+                // dst.at<cv::Vec3b>(newY, newX) = src.at<cv::Vec3b>(y, x);
+                if (src.shape()[2] == 1) {
+                    // Case 1: 1 channel
+                    dst.at(newY, newX) = src.at(y, x);
+                } else if (src.shape()[2] == 3) {
+                    // Case 2: 3 channels
+                    dst.at(newY, newX, 0) = src.at(y, x, 0);   // Blue
+                    dst.at(newY, newX, 1) = src.at(y, x, 1);   // Green
+                    dst.at(newY, newX, 2) = src.at(y, x, 2);   // Red
+                } else {
+                    throw std::invalid_argument("Unsupported number of channels for flipping");
+                }
             }
         }
     }
