@@ -1,100 +1,119 @@
 //
-// Created by Hinsun on 2025-06-18
-// Copyright (c) 2025 VanHoai. All rights reserved.
+// File        : transformations.cpp
+// Author      : Hinsun
+// Date        : 2025-06-TODAY
+// Copyright   : (c) 2025 Tran Van Hoai
+// License     : MIT
 //
 
 #ifndef TRANSFORMATIONS_HPP
 #define TRANSFORMATIONS_HPP
 
+/**
+ * @brief Header for image transformation utilities.
+ *
+ * This file declares the `processing::Transformations` class, which provides
+ * static methods for common image preprocessing tasks such as:
+ * - Color space conversions (BGR <-> HSV)
+ * - Grayscale conversion
+ * - Image resizing and normalization
+ * - Padding and cropping (including random cropping)
+ * - Rotation and flipping
+ */
+
 #include <opencv2/opencv.hpp>
 
 namespace processing {
 
-    /**
-     * Transformations class provides a collection of static methods for image processing.
-     * This class provides methods for converting images with many different including:
-     * - Transform Color Space: BGR to HSV, HSV to BGR
-     * - Convert to Grayscale
-     * - Resize, Normalize
-     * - Padding, Cropping, Random Cropping
-     * - Rotate, Flip
-     */
     class Transformations {
         public:
+            /**
+             * @enum ColorSpace
+             * @brief Enum to specify color space conversion types.
+             */
             enum class ColorSpace { BGR_TO_HSV, HSV_TO_BGR };
+
+            /**
+             * @enum FlipCode
+             * @brief Enum to specify flip directions.
+             */
             enum class FlipCode { VERTICAL = 0, HORIZONTAL = 1, BOTH = -1 };
+
+            /**
+             * @enum RotateAngle
+             * @brief Enum to specify rotation angles (clockwise).
+             */
             enum class RotateAngle { CLOCKWISE_90 = 0, CLOCKWISE_180 = 1, CLOCKWISE_270 = 2 };
 
             /**
-             * Convert an image to a specified color space.
-             * This function takes an input image and converts it to the specified color space.
-             * @params:
-             * inputImage: The input image to be converted
-             * outputImage: The converted output image
-             * colorSpace: The desired color space for the output image
+             * @brief Convert an image to a specified color space.
              *
-             * Notice:
-             * - ColorSpace::BGR_TO_HSV: Convert BGR to HSV
-             * - ColorSpace::HSV_TO_BGR: Convert HSV to BGR
+             * Supported conversions:
+             * - ColorSpace::BGR_TO_HSV — Convert from BGR to HSV.
+             * - ColorSpace::HSV_TO_BGR — Convert from HSV to BGR.
+             *
+             * @param inputImage   Input image (source).
+             * @param outputImage  Output image (converted).
+             * @param colorSpace   Target color space.
              */
             static void convertColorSpace(const cv::Mat &inputImage, cv::Mat &outputImage,
                                           ColorSpace colorSpace);
 
             /**
-             * Convert a BGR image to HSV.
-             * Function takes a BGR image as input and converts it to an HSV image.
-             * @params:
-             * inputImage: The input image in BGR format like opencv saved
-             * outputImage: The output image in HSV format (3 channels)
+             * @brief Convert a BGR image to HSV format.
              *
-             * Notice:
-             * HSV stands for Hue, Saturation, and Value.
-             * Hue represents the color type, Saturation represents the intensity of the color,
-             * and Value represents the brightness of the color.
-             * For convert BGR to HSV, follow formula:
-             * 1. Calculate the normalized RGB values, by divided by 255 to change the range
-             * from [0...255] to [0...1]:
-             * - R' = R / 255.0
-             * - G' = G / 255.0
-             * - B' = B / 255.0
+             * This function takes an image in BGR format and converts it to HSV format.
+             * HSV stands for Hue, Saturation, and Value:
+             * - Hue represents the type of color (e.g., red, blue).
+             * - Saturation represents the vibrancy of the color.
+             * - Value represents the brightness of the color.
              *
-             * 2. Calculate the maximum and minimum values of R', G', B':
-             * - Cmax = max(R', G', B')
-             * - Cmin = min(R', G', B')
+             * Conversion steps:
+             * 1. Normalize the BGR values to the range [0, 1]:
+             *    - R' = R / 255.0
+             *    - G' = G / 255.0
+             *    - B' = B / 255.0
              *
-             * 3. Calculate delta (Δ) - the difference between Cmax and Cmin:
-             * - Δ = Cmax - Cmin
+             * 2. Compute:
+             *    - Cmax = max(R', G', B')
+             *    - Cmin = min(R', G', B')
+             *    - Δ = Cmax - Cmin
              *
-             * 4. Calculate the Hue (H) with 4 cases:
-             * - Δ = 0, then H = 0 (undefined hue)
-             * - Cmax = R', then H = 60 * ((G' - B') / Δ) % 360
-             * - Cmax = G', then H = 60 * ((B' - R') / Δ + 2) % 360
-             * - Cmax = B', then H = 60 * ((R' - G') / Δ + 4) % 360
+             * 3. Compute Hue (H):
+             *    - If Δ == 0 → H = 0
+             *    - If Cmax == R' → H = 60 * fmod((G' - B') / Δ, 6)
+             *    - If Cmax == G' → H = 60 * (((B' - R') / Δ) + 2)
+             *    - If Cmax == B' → H = 60 * (((R' - G') / Δ) + 4)
+             *    - H should be in [0, 360)
              *
-             * 5. Calculate the Saturation (S) with 2 cases:
-             * - Cmax = 0, then S = 0 (undefined saturation)
-             * - S = Δ / Cmax
+             * 4. Compute Saturation (S):
+             *    - If Cmax == 0 → S = 0
+             *    - Else → S = Δ / Cmax
              *
-             * 6. Calculate the Value (V): V = Cmax
+             * 5. Compute Value (V): V = Cmax
              *
-             * Notice: cv::Mat in OpenCV is stored in BGR format.
+             * Notes:
+             * - Input image must be in BGR format (as used by OpenCV).
+             * - Output image will have 3 channels: H in [0, 360), S and V in [0, 1] (or scaled
+             * appropriately).
+             *
+             * @param inputImage  Input image in BGR format.
+             * @param outputImage Output image in HSV format (3-channel float/double or scaled
+             * uchar).
              */
             static void convertBGRToHSV(const cv::Mat &inputImage, cv::Mat &outputImage);
 
             /**
-             * Convert an HSV image to BGR.
-             * Function takes an HSV image as input and converts it to a BGR image.
-             * @params:
-             * inputImage: The input image in HSV format (3 channels)
-             * outputImage: The output image in BGR format like opencv saved
+             * @brief Convert an HSV image to BGR format.
              *
-             * Notice:
-             * For convert HSV to BGR, follow formula:
+             * This function takes an HSV image as input and converts it to a BGR image.
+             *
              * Conditions required:
              * - Hue (H) must be in the range [0, 360]
              * - Saturation (S) must be in the range [0, 1]
              * - Value (V) must be in the range [0, 1]
              *
+             * Conversion steps:
              * 1. Calculate the chroma (C):
              * - C = V * S
              * - X = C * (1 - |(H / 60) % 2 - 1|)
@@ -112,98 +131,101 @@ namespace processing {
              * - B = (B' + m) * 255
              * - G = (G' + m) * 255
              * - R = (R' + m) * 255
+             *
+             * @param inputImage: The input image in HSV format (3 channels)
+             * @param outputImage: The output image in BGR format like opencv saved
              */
             static void convertHSVtoBGR(const cv::Mat &inputImage, cv::Mat &outputImage);
 
             /**
-             * Convert a BGR image to grayscale.
-             * This function takes a BGR image as input and converts it to a grayscale image using
-             * the formula: F(R, G, B) = 0.299 * R + 0.587 * G + 0.114 * B
-             * @params:
-             * inputImage: The input image in BGR format like opencv saved
-             * outputImage: The output image in grayscale format (1 channel)
+             * @brief Convert a BGR image to grayscale.
+             *
+             * Formula used:
+             *     Gray = 0.299 * R + 0.587 * G + 0.114 * B
+             *
+             * @param inputImage   Input image in BGR format.
+             * @param outputImage  Output grayscale image (1 channel).
              */
             static void convertToGrayScale(const cv::Mat &inputImage, cv::Mat &outputImage);
 
             /**
-             * Resize an image to a new size.
-             * This function takes an input image and resizes it to the specified new size.
-             * @params:
-             * inputImage: The input image to be resized
-             * outputImage: The resized output image
-             * newSize: The desired size for the output image
+             * @brief Resize an image to a new size.
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Output resized image.
+             * @param newSize      Target size (width, height).
              */
             static void resize(const cv::Mat &inputImage, cv::Mat &outputImage,
                                const cv::Size &newSize);
 
             /**
-             * Normalize an image with mean and standard deviation.
-             * This function takes an input image and normalizes it by subtracting the mean
-             * and dividing by the standard deviation.
-             * @param:
-             * inputImage: The input image to be normalized
-             * outputImage: The normalized output image
-             * mean: The mean value for normalization (default is (0, 0, 0))
-             * std: The standard deviation value for normalization (default is (1, 1, 1))
+             * @brief Normalize an image by mean and standard deviation.
+             *
+             * For each channel: (value - mean) / std.
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Output normalized image.
+             * @param mean         Mean value per channel.
+             * @param std          Standard deviation per channel.
              */
             static void normalize(const cv::Mat &inputImage, cv::Mat &outputImage,
                                   const cv::Scalar &mean, const cv::Scalar &std);
 
             /**
-             * Pad an image with a specified padding size and value.
-             * This function takes an input image and pads it with the specified size and value.
-             * @params:
-             * inputImage: The input image to be padded
-             * outputImage: The padded output image
-             * paddingSize: The size of the padding to be applied (width, height)
-             * value: The value used for padding (default is black color)
+             * @brief Pad an image with a constant border.
+             *
+             * @param inputImage    Input image.
+             * @param outputImage   Output padded image.
+             * @param paddingSize   Size of padding (left/right, top/bottom).
+             * @param value         Padding value (default: black).
              */
             static void pad(const cv::Mat &inputImage, cv::Mat &outputImage,
                             const cv::Size &paddingSize, const cv::Scalar &value);
 
             /**
-             * Crop an image to a specified region of interest (ROI).
-             * This function takes an input image and crops it to the specified ROI.
-             * @param:
-             * inputImage: The input image to be cropped
-             * outputImage: The cropped output image
-             * roi: The region of interest (ROI) to crop the image
-             * Notice: The roi must be within the bounds of the input image.
-             * If the roi is out of bounds, it will throw an exception.
+             * @brief Crop an image to a given region of interest (ROI).
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Output cropped image.
+             * @param roi          Region of interest to crop.
+             *
+             * @throw std::out_of_range If the ROI is outside the image bounds.
              */
             static void crop(const cv::Mat &inputImage, cv::Mat &outputImage, const cv::Rect &roi);
 
             /**
-             * Randomly crop an image to a specified size.
-             * This function takes an input image and randomly crops it to the specified size.
-             * @params:
-             * inputImage: The input image to be cropped
-             * outputImage: The randomly cropped output image
-             * cropSize: The desired size for the cropped image
-             * Notice: If the cropSize is larger than the input image size, it will throw an
-             * exception.
+             * @brief Randomly crop an image to a given size.
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Output cropped image.
+             * @param cropSize     Target crop size (width, height).
+             *
+             * @throw std::invalid_argument If cropSize is larger than the image size.
              */
             static void randomCrop(const cv::Mat &inputImage, cv::Mat &outputImage,
                                    const cv::Size &cropSize);
 
             /**
-             * Rotate an image by a specified angle.
-             * This function takes an input image and rotates it by the specified angle.
-             * @params:
-             * inputImage: The input image to be rotated
-             * outputImage: The rotated output image
-             * angle: The angle in degrees to rotate the image
+             * @brief Rotate an image by a specified angle.
+             *
+             * Supported angles:
+             * - 90, 180, 270 degrees (clockwise)
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Rotated output image.
+             * @param angle        Rotation angle (clockwise).
              */
             static void rotate(const cv::Mat &inputImage, cv::Mat &outputImage, RotateAngle angle);
 
             /**
-             * Flip an image horizontally or vertically.
-             * This function takes an input image and flips it either horizontally or vertically.
-             * @params:
-             * inputImage: The input image to be flipped
-             * outputImage: The flipped output image
-             * flipCode: The code to specify the flip direction (0 for vertical, 1 for horizontal,
-             * -1 for both)
+             * @brief Flip an image horizontally, vertically, or both.
+             *
+             * @param inputImage   Input image.
+             * @param outputImage  Flipped output image.
+             * @param flipCode     Direction to flip:
+             *                     - FlipCode::VERTICAL: Vertical flip (up-down).
+             *                     - FlipCode::HORIZONTAL: Horizontal flip (left-right).
+             *                     - FlipCode::BOTH: Both horizontal and vertical flip.
              */
             static void flip(const cv::Mat &inputImage, cv::Mat &outputImage, FlipCode flipCode);
     };

@@ -12,6 +12,10 @@ target_link_libraries(${PROJECT_NAME}
         ${OpenCV_LIBS}
         ${OPENMP_LIBRARIES}
         Threads::Threads
+
+        # For OS X
+        "-framework CoreGraphics"
+        "-framework Foundation"
 )
 
 # Include directories

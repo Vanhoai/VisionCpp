@@ -1,28 +1,34 @@
 //
-// Created by Hinsun on 2025-06-24.
-// Copyright (c) 2025 VanHoai. All rights reserved.
+// File        : thresholding.cpp
+// Author      : Hinsun
+// Date        : 2025-06-25
+// Copyright   : (c) 2025 Tran Van Hoai
+// License     : MIT
 //
 
-#ifndef THRESHOLDING_H
-#define THRESHOLDING_H
+#ifndef THRESHOLDING_HPP
+#define THRESHOLDING_HPP
+
+/**
+ * @brief Header for various image thresholding operations.
+ *
+ * This file declares the `processing::Thresholding` class, which provides static
+ * methods for applying different types of thresholding to grayscale images, including:
+ * - Simple thresholding (binary, inverse, trunc, etc.)
+ * - Adaptive thresholding (mean and Gaussian)
+ * - Otsu’s thresholding for automatic threshold selection
+ */
 
 #include <opencv2/opencv.hpp>
 
 namespace processing {
 
-    /**
-     * Thresholding class provides methods for different types of thresholding operations.
-     * It includes Otsu's method for automatic thresholding and various types of thresholding
-     * operations that can be applied to images.
-     * 1. Global Thresholding
-     * 2. Binary Thresholding
-     * 3. Inverse Binary Thresholding
-     * 4. Truncated Thresholding
-     * 5. To Zero Thresholding
-     * 6. Inverse To Zero Thresholding
-     */
     class Thresholding {
         public:
+            /**
+             * @enum SimpleThresholding
+             * @brief Enum for basic thresholding modes.
+             */
             enum class SimpleThresholding {
                 THRESH_BINARY,
                 THRESH_BINARY_INV,
@@ -31,110 +37,93 @@ namespace processing {
                 THRESH_TOZERO_INV
             };
 
+            /**
+             * @enum AdaptiveThresholding
+             * @brief Enum for adaptive thresholding strategies.
+             */
             enum class AdaptiveThresholding { ADAPTIVE_THRESH_MEAN_C, ADAPTIVE_THRESH_GAUSSIAN_C };
 
             /**
-             * Applies simple thresholding to the input image.
-             * @param:
-             * inputImage: The input image in grayscale format (1 channel).
-             * outputImage: The output image after thresholding.
-             * thresh: The threshold value.
-             * maxVal: The maximum value to use with the thresholding type.
-             * type: The type of thresholding to apply.
-             */
-            static void applyThresholding(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                          int thresh, int maxVal, SimpleThresholding type);
-
-            /**
-             * Applies adaptive thresholding to the input image.
-             * @param:
-             * inputImage: The input image in grayscale format (1 channel).
-             * outputImage: The output image after adaptive thresholding.
-             * blockSize: Size of the neighborhood area used for adaptive thresholding.
-             * C: Constant subtracted from the mean or weighted mean.
-             * type: The type of adaptive thresholding to apply.
+             * @brief Applies simple (global) thresholding to a grayscale image.
              *
-             * Notice:
-             * blockSize must be an odd number greater than 1.
-             * C is a constant subtracted from the mean or weighted mean(typically 3 - 10).
-             * AdaptiveThresholding type can be either ADAPTIVE_THRESH_MEAN_C or
-             * ADAPTIVE_THRESH_GAUSSIAN_C.
-             * Additionally, when use ADAPTIVE_THRESH_GAUSSIAN_C, this algorithm also use
-             * sigma to control the Gaussian kernel size.
+             * @param src           Input grayscale image (1 channel).
+             * @param dst           Output image after thresholding.
+             * @param thresh        Threshold value.
+             * @param maxVal        Maximum value to use when thresholding.
+             * @param type          Thresholding type to apply (binary, trunc, etc.).
              */
-            static void applyAdaptiveThresholding(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                                  int blockSize, double C,
-                                                  AdaptiveThresholding type);
+            static void applyThresholding(const cv::Mat& src, cv::Mat& dst, int thresh, int maxVal,
+                                          SimpleThresholding type);
 
             /**
-             * Adaptive thresholding using mean value.
-             * @param:
-             * inputImage: The input image in grayscale format (1 channel).
-             * outputImage: The output image after adaptive thresholding.
-             * blockSize: Size of the neighborhood area used for adaptive thresholding.
-             * C: Constant subtracted from the mean.
+             * @brief Applies adaptive thresholding to a grayscale image.
              *
-             * How it works:
-             * For each pixel in the input image, the mean of the pixel values in the
-             * neighborhood defined by blockSize is calculated, and then the constant C is
-             * subtracted from this mean to determine the threshold for that pixel.
-             * If the pixel value is greater than the threshold, it is set to maxVal (255),
-             * otherwise it is set to 0.
-             */
-            static void adaptiveThresholdMean(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                              int blockSize, int C);
-
-            /**
-             * Adaptive thresholding using Gaussian weighted mean.
-             * @param:
-             * inputImage: The input image in grayscale format (1 channel).
-             * outputImage: The output image after adaptive thresholding.
-             * blockSize: Size of the neighborhood area used for adaptive thresholding.
-             * C: Constant subtracted from the weighted mean.
-             * sigma: Standard deviation for the Gaussian kernel.
+             * Computes a threshold value for each pixel based on the local neighborhood.
              *
-             * How it works:
-             * For each pixel in the input image, a Gaussian weighted mean of the pixel values
-             * in the neighborhood defined by blockSize is calculated, and then the constant C
-             * is subtracted from this mean to determine the threshold for that pixel.
-             * If the pixel value is greater than the threshold, it is set to maxVal (255),
-             * otherwise it is set to 0.
-             * This method is more effective in handling images with varying lighting conditions
-             * as it considers the local pixel distribution with a Gaussian weighting.
+             * @param src           Input grayscale image (1 channel).
+             * @param dst           Output image after adaptive thresholding.
+             * @param blockSize     Size of the local region (must be odd and > 1).
+             * @param C             Constant subtracted from the mean or weighted mean.
+             * @param type          Type of adaptive thresholding (mean or Gaussian).
+             *
+             * @throw std::invalid_argument If blockSize is not odd or less than 3.
              */
-            static void adaptiveThresholdGaussian(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                                  int blockSize, double C, double sigma);
+            static void applyAdaptiveThresholding(const cv::Mat& src, cv::Mat& dst, int blockSize,
+                                                  double C, AdaptiveThresholding type);
 
             /**
-             * Calculates the Gaussian kernel value for a given pixel position.
-             * @param:
-             * x: The x-coordinate of the pixel.
-             * y: The y-coordinate of the pixel.
-             * sigma: Standard deviation for the Gaussian kernel.
-             * @return: The Gaussian kernel value at the specified pixel position.
+             * @brief Applies adaptive thresholding using local mean.
+             *
+             * For each pixel, computes the mean of its local region and subtracts C to get the
+             * threshold.
+             *
+             * @param src           Input grayscale image (1 channel).
+             * @param dst           Output thresholded image.
+             * @param blockSize     Neighborhood size (must be odd and > 1).
+             * @param C             Constant subtracted from the mean.
+             */
+            static void adaptiveThresholdMean(const cv::Mat& src, cv::Mat& dst, int blockSize,
+                                              int C);
+
+            /**
+             * @brief Applies adaptive thresholding using Gaussian-weighted mean.
+             *
+             * Similar to mean thresholding, but uses a Gaussian kernel to weight pixels in the
+             * local region. Better suited for images with uneven lighting.
+             *
+             * @param src           Input grayscale image (1 channel).
+             * @param dst           Output thresholded image.
+             * @param blockSize     Neighborhood size (must be odd and > 1).
+             * @param C             Constant subtracted from the weighted mean.
+             * @param sigma         Standard deviation of the Gaussian kernel.
+             */
+            static void adaptiveThresholdGaussian(const cv::Mat& src, cv::Mat& dst, int blockSize,
+                                                  double C, double sigma);
+
+            /**
+             * @brief Computes a 2D Gaussian kernel value at a specific (x, y) location.
+             *
+             * Used internally for Gaussian adaptive thresholding.
+             *
+             * @param x     x-coordinate (relative to center).
+             * @param y     y-coordinate (relative to center).
+             * @param sigma Standard deviation of the Gaussian distribution.
+             * @return Gaussian weight at the given position.
              */
             static double gaussianKernel(int x, int y, double sigma);
 
             /**
-             * Calculates the Otsu's threshold value for the input image.
-             * Otsu's method is used to find an optimal threshold value that separates the
-             * foreground and background in a grayscale image.
-             * @param:
-             * inputImage: The input image in grayscale format (1 channel).
-             * @return: The calculated Otsu's threshold value.
+             * @brief Computes Otsu's optimal threshold value for a grayscale image.
              *
-             * How it works:
-             * 1. The histogram of the input image is computed.
-             * 2. The total number of pixels is calculated.
-             * 3. The Otsu's method iterates through all possible threshold values,
-             *    calculating the between-class variance for each threshold.
-             * 4. The threshold value that maximizes the between-class variance is selected
-             *    as the optimal threshold.
-             * 5. The function returns this optimal threshold value.
+             * Automatically finds the threshold that minimizes intra-class variance
+             * (i.e., best separates foreground from background).
+             *
+             * @param src Input grayscale image (1 channel).
+             * @return Optimal threshold value found by Otsu’s method.
              */
-            static int otsuThresholding(const cv::Mat &inputImage);
+            static int otsuThresholding(const cv::Mat& src);
     };
 
 }   // namespace processing
 
-#endif   // THRESHOLDING_H
+#endif   // THRESHOLDING_HPP
