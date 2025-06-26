@@ -22,8 +22,8 @@ namespace core {
     void showImageCenterWindow(const Tensor<float32> &tensor,
                                const std::string &windowName = "Window");
 
-    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor, int channels = 3);
-    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst, int channels = 3);
+    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor);
+    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst);
 }   // namespace core
 
 #endif   // COMMON_HPP

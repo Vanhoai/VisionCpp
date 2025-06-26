@@ -103,8 +103,8 @@ namespace core {
              * @param data A vector containing the data to initialize the tensor.
              *
              * @example
-             * core::Tensor<float> tensor({4, 5, 6}); create a 1D tensor shape (3,)
-             * core::Tensor<int> tensor({6, 7}); create a 1D tensor shape (2,)
+             * core::Tensor<float> tensor({4, 5, 6}); create a 1D tensor shape (3),
+             * core::Tensor<int> tensor({6, 7}); create a 1D tensor shape (2)
              */
             explicit Tensor(const std::vector<T>& data) : shape_{data.size()}, size_(data.size()) {
                 data_ = std::make_unique<T[]>(size_);

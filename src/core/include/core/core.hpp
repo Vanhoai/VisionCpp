@@ -10,6 +10,9 @@
 #define MACROS_HPP
 
 #pragma once
+#include <stddef.h>
+
+#include <cstdint>
 
 namespace core {
 
