@@ -1,5 +1,9 @@
 //
-// Created by VanHoai on 11/6/25.
+// File        : datasets.hpp
+// Author      : Hinsun
+// Date        : 2025-06-11
+// Copyright   : (c) 2025 Tran Van Hoai
+// License     : MIT
 //
 
 #ifndef DATASETS_HPP

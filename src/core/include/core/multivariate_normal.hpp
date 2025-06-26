@@ -1,5 +1,9 @@
 //
-// Created by VanHoai on 10/6/25.
+// File        : multivariate_normal.hpp
+// Author      : Hinsun
+// Date        : 2025-06-26
+// Copyright   : (c) 2025 Tran Van Hoai
+// License     : MIT
 //
 
 #ifndef MULTIVARIATE_NORMAL_HPP

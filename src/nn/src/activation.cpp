@@ -25,17 +25,6 @@ namespace nn {
 
     // f(x) = exp(x) / sum(exp(x))
     Eigen::MatrixXd SoftmaxActivation::operator()(Eigen::MatrixXd &X) {
-        // exp = np.exp(X - np.max(X, axis=1))
-        // return exp / np.sum(exp, axis=1)
-
-        // const VectorXd maxRow = X.rowwise().maxCoeff();
-        // const Eigen::MatrixXd maxRowExpanded = maxRow.replicate(1, X.cols());
-        // const Eigen::MatrixXd exp = (X.array() - maxRowExpanded.array()).exp();
-        //
-        // const VectorXd sumExp = exp.rowwise().sum();
-        // const Eigen::MatrixXd sumExpExpanded = sumExp.replicate(1, X.cols());
-        // return exp.array() / sumExpExpanded.array();
-
         Eigen::MatrixXd Y(X.rows(), X.cols());
         for (int i = 0; i < X.rows(); ++i) {
             double maxRow = X.row(i).maxCoeff();

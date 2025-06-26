@@ -5,51 +5,54 @@
 
 #include "processing/thresholding.hpp"
 
-#include <opencv2/opencv.hpp>
 #include <vector>
+
+#include "core/core.hpp"
+#include "core/tensor.hpp"
 
 namespace processing {
 
-    void Thresholding::applyThresholding(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                         const int thresh, const int maxVal,
-                                         const SimpleThresholding type) {
-        if (inputImage.empty())
+    void Thresholding::applyThresholding(const core::Tensor<core::float32> &src,
+                                         core::Tensor<core::float32> &dst, const int thresh,
+                                         const int maxVal, const SimpleThresholding type) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 1)
+        if (src.dimensions() != 2)
             throw std::invalid_argument("Input image must be in grayscale format (1 channel)");
 
-        const int width = inputImage.cols;
-        const int height = inputImage.rows;
+        const int width = src.shape()[0];
+        const int height = src.shape()[1];
 
-        outputImage = cv::Mat::zeros(height, width, CV_8UC1);
+        dst = core::Tensor<core::float32>(height, width);
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 if (type == SimpleThresholding::THRESH_BINARY) {
-                    if (inputImage.at<uchar>(y, x) >= thresh)
-                        outputImage.at<uchar>(y, x) = maxVal;
+                    if (src.at(y, x) >= thresh)
+                        dst.at(y, x) = maxVal;
                     else
-                        outputImage.at<uchar>(y, x) = 0;
+                        dst.at(y, x) = 0;
                 } else if (type == SimpleThresholding::THRESH_BINARY_INV) {
-                    if (inputImage.at<uchar>(y, x) < thresh)
-                        outputImage.at<uchar>(y, x) = maxVal;
+                    if (src.at(y, x) < thresh)
+                        dst.at(y, x) = maxVal;
                     else
-                        outputImage.at<uchar>(y, x) = 0;
+                        dst.at(y, x) = 0;
                 } else if (type == SimpleThresholding::THRESH_TRUNC) {
-                    if (inputImage.at<uchar>(y, x) > thresh)
-                        outputImage.at<uchar>(y, x) = thresh;
+                    if (src.at(y, x) > thresh)
+                        dst.at(y, x) = thresh;
                     else
-                        outputImage.at<uchar>(y, x) = inputImage.at<uchar>(y, x);
+                        dst.at(y, x) = src.at(y, x);
                 } else if (type == SimpleThresholding::THRESH_TOZERO) {
-                    if (inputImage.at<uchar>(y, x) > thresh)
-                        outputImage.at<uchar>(y, x) = inputImage.at<uchar>(y, x);
+                    if (src.at(y, x) > thresh)
+                        dst.at(y, x) = src.at(y, x);
                     else
-                        outputImage.at<uchar>(y, x) = 0;
+                        dst.at(y, x) = 0;
                 } else if (type == SimpleThresholding::THRESH_TOZERO_INV) {
-                    if (inputImage.at<uchar>(y, x) <= thresh)
-                        outputImage.at<uchar>(y, x) = inputImage.at<uchar>(y, x);
+                    if (src.at(y, x) <= thresh)
+                        dst.at(y, x) = src.at(y, x);
                     else
-                        outputImage.at<uchar>(y, x) = 0;
+                        dst.at(y, x) = 0;
                 } else {
                     throw std::invalid_argument("Unsupported thresholding type");
                 }
@@ -57,80 +60,88 @@ namespace processing {
         }
     }
 
-    void Thresholding::applyAdaptiveThresholding(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                                 int blockSize, double C,
-                                                 AdaptiveThresholding type) {
-        if (inputImage.empty())
+    void Thresholding::applyAdaptiveThresholding(const core::Tensor<core::float32> &src,
+                                                 core::Tensor<core::float32> &dst, int blockSize,
+                                                 double C, AdaptiveThresholding type) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 1)
+        if (src.dimensions() != 2)
             throw std::invalid_argument("Input image must be in grayscale format (1 channel)");
 
         if (blockSize % 2 == 0 || blockSize <= 1)
             throw std::invalid_argument("Block size must be an odd number greater than 1");
 
         if (type == AdaptiveThresholding::ADAPTIVE_THRESH_MEAN_C) {
-            adaptiveThresholdMean(inputImage, outputImage, blockSize, static_cast<int>(C));
+            adaptiveThresholdMean(src, dst, blockSize, static_cast<int>(C));
         } else if (type == AdaptiveThresholding::ADAPTIVE_THRESH_GAUSSIAN_C) {
-            adaptiveThresholdGaussian(inputImage, outputImage, blockSize, C, 1.0);
+            adaptiveThresholdGaussian(src, dst, blockSize, C, 1.0);
         } else {
             throw std::invalid_argument("Unsupported adaptive thresholding type");
         }
     }
 
-    void Thresholding::adaptiveThresholdMean(const cv::Mat &inputImage, cv::Mat &outputImage,
-                                             const int blockSize, const int C) {
-        int radius = blockSize / 2;
-        outputImage = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+    void Thresholding::adaptiveThresholdMean(const core::Tensor<core::float32> &src,
+                                             core::Tensor<core::float32> &dst, const int blockSize,
+                                             const int C) {
+        const int radius = blockSize / 2;
+        const int height = src.shape()[0];
+        const int width = src.shape()[1];
 
-        for (int y = 0; y < inputImage.rows; y++) {
-            for (int x = 0; x < inputImage.cols; x++) {
+        dst = core::Tensor<core::float32>(height, width);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 int sum = 0;
                 int count = 0;
 
                 for (int dy = -radius; dy <= radius; dy++) {
                     for (int dx = -radius; dx <= radius; dx++) {
-                        int ny = y + dy;
-                        int nx = x + dx;
+                        const int ny = y + dy;
+                        const int nx = x + dx;
 
-                        if (ny >= 0 && ny < inputImage.rows && nx >= 0 && nx < inputImage.cols) {
-                            sum += inputImage.at<uchar>(ny, nx);
+                        if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                            sum += src.at(ny, nx);
                             count++;
                         }
                     }
                 }
 
-                int threshold = sum / count - C;
-                outputImage.at<uchar>(y, x) = inputImage.at<uchar>(y, x) > threshold ? 255 : 0;
+                const int threshold = sum / count - C;
+                dst.at(y, x) = src.at(y, x) > threshold ? 255 : 0;
             }
         }
     }
 
-    void Thresholding::adaptiveThresholdGaussian(const cv::Mat &inputImage, cv::Mat &outputImage,
+    void Thresholding::adaptiveThresholdGaussian(const core::Tensor<core::float32> &src,
+                                                 core::Tensor<core::float32> &dst,
                                                  const int blockSize, const double C,
                                                  const double sigma) {
-        int radius = blockSize / 2;
-        outputImage = cv::Mat::zeros(inputImage.size(), CV_8UC1);
+        const int radius = blockSize / 2;
+        const int height = src.shape()[0];
+        const int width = src.shape()[1];
 
-        for (int y = 0; y < inputImage.rows; y++) {
-            for (int x = 0; x < inputImage.cols; x++) {
+        dst = core::Tensor<core::float32>(height, width);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 double sum = 0.0;
                 double weightSum = 0.0;
 
                 for (int dy = -radius; dy <= radius; ++dy) {
                     for (int dx = -radius; dx <= radius; ++dx) {
-                        int ny = y + dy;
-                        int nx = x + dx;
-                        if (ny >= 0 && ny < inputImage.rows && nx >= 0 && nx < inputImage.cols) {
-                            double weight = gaussianKernel(dx, dy, sigma);
-                            sum += weight * inputImage.at<uchar>(ny, nx);
+                        const int ny = y + dy;
+                        const int nx = x + dx;
+                        if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                            const double weight = gaussianKernel(dx, dy, sigma);
+                            sum += weight * src.at(ny, nx);
                             weightSum += weight;
                         }
                     }
                 }
 
-                int threshold = static_cast<int>(sum / weightSum) - C;
-                outputImage.at<uchar>(y, x) = inputImage.at<uchar>(y, x) > threshold ? 255 : 0;
+                const int threshold = static_cast<int>(sum / weightSum) - C;
+                dst.at(y, x) = src.at(y, x) > threshold ? 255 : 0;
             }
         }
     }
@@ -139,23 +150,26 @@ namespace processing {
         return std::exp(-(x * x + y * y) / (2 * sigma * sigma));
     }
 
-    int Thresholding::otsuThresholding(const cv::Mat &inputImage) {
-        if (inputImage.empty())
+    int Thresholding::otsuThresholding(const core::Tensor<core::float32> &src) {
+        if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
-        if (inputImage.channels() != 1)
+        if (src.dimensions() != 2)
             throw std::invalid_argument("Input image must be in grayscale format (1 channel)");
 
+        const int height = src.shape()[0];
+        const int width = src.shape()[1];
+
         // 1. Calculate the histogram of the input image
-        std::vector<int> histogram(256, 0);
-        for (int y = 0; y < inputImage.rows; y++) {
-            for (int x = 0; x < inputImage.cols; x++) {
-                uchar pixel = inputImage.at<uchar>(y, x);
+        std::vector histogram(256, 0);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const int pixel = static_cast<int>(src.at(y, x));
                 histogram[pixel]++;
             }
         }
 
-        int total = inputImage.rows * inputImage.cols;
+        int total = height * width;
 
         // 2. Calculate the cumulative histogram and the total number of pixels
         double sum = 0.0;

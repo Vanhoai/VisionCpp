@@ -322,6 +322,28 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 MIT License - Feel free to use, modify, and distribute! 🎉
 ```
 
+## Licensing Notes on SURF
+
+⚠️ **IMPORTANT PATENT NOTICE**
+
+The SURF algorithm is protected by patents in some jurisdictions, including the United States.
+Although this project provides a clean-room implementation for educational and research purposes,
+**commercial use may require patent licensing**.
+
+**Recommendations:**
+
+- **For research/educational use**: This implementation should be fine in most cases
+- **For commercial use**: Consult with a legal advisor regarding patent obligations in your jurisdiction
+- **For patent-free alternatives**: Consider using ORB, AKAZE, or BRISK algorithms instead
+
+**Patent-free alternatives available in this library:**
+
+- ORB (Oriented FAST and Rotated BRIEF)
+- AKAZE (Accelerated-KAZE)
+- BRISK (Binary Robust Invariant Scalable Keypoints)
+
+The SIFT algorithm implementation in this library is patent-free (patents expired in 2020).
+
 ---
 
 ## 🙏 Acknowledgments

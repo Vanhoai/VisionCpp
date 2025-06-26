@@ -46,48 +46,62 @@ namespace core {
 
     void showImageCenterWindow(const Tensor<float32> &tensor, const std::string &windowName) {
         cv::Mat image;
-        tensorToMat(tensor, image, tensor.shape()[2]);
+        tensorToMat(tensor, image);
         showImageCenterWindow(image, windowName);
     }
 
-    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor, const int channels) {
+    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor) {
         if (src.empty())
             throw std::runtime_error("Image should be non-empty");
 
-        if (src.channels() != channels)
-            throw std::runtime_error("Image should have the same number of channels");
-
-        tensor = Tensor<float32>(src.rows, src.cols, static_cast<size_t>(channels));
+        if (src.channels() == 1)
+            tensor = Tensor<float32>(src.rows, src.cols);
+        else
+            tensor = Tensor<float32>(src.rows, src.cols, 3);
 
         for (int y = 0; y < src.rows; ++y) {
             for (int x = 0; x < src.cols; ++x) {
-                const auto &pixel = src.at<cv::Vec3b>(y, x);
+                if (src.channels() == 1) {
+                    // Grayscale
+                    tensor.at(y, x) = static_cast<float32>(src.at<uchar>(y, x));
+                } else if (src.channels() == 3) {
+                    // Color
+                    const auto &pixel = src.at<cv::Vec3b>(y, x);
 
-                for (int c = 0; c < channels; ++c)
-                    tensor.at(y, x, c) = static_cast<float32>(pixel[c]);
+                    tensor.at(y, x, 0) = static_cast<float32>(pixel[0]);   // Blue
+                    tensor.at(y, x, 1) = static_cast<float32>(pixel[1]);   // Green
+                    tensor.at(y, x, 2) = static_cast<float32>(pixel[2]);   // Red
+                } else {
+                    throw std::runtime_error("Unsupported number of channels");
+                }
             }
         }
     }
 
-    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst, const int channels) {
+    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst) {
         if (tensor.empty())
             throw std::runtime_error("Tensor should be non-empty");
 
-        if (tensor.dimensions() != static_cast<size_t>(3) ||
-            tensor.shape()[2] != static_cast<size_t>(channels))
-            throw std::runtime_error(
-                "Tensor should have 3 dimensions and the last dimension should match the number of "
-                "channels");
+        if (tensor.dimensions() == static_cast<size_t>(2))
+            dst = cv::Mat(tensor.shape()[0], tensor.shape()[1], CV_8UC1);
+        else
+            dst = cv::Mat(tensor.shape()[0], tensor.shape()[1], CV_8UC3);
 
-        dst = cv::Mat(tensor.shape()[0], tensor.shape()[1], CV_8UC(channels));
         for (size_t y = 0; y < tensor.shape()[0]; ++y) {
             for (size_t x = 0; x < tensor.shape()[1]; ++x) {
-                cv::Vec3b pixel;
+                if (tensor.dimensions() == static_cast<size_t>(2)) {
+                    // Grayscale
+                    dst.at<uchar>(y, x) = static_cast<uchar>(tensor.at(y, x));
+                } else if (tensor.dimensions() == static_cast<size_t>(3)) {
+                    // Color
+                    cv::Vec3b pixel;
+                    for (size_t c = 0; c < tensor.shape()[2]; ++c)
+                        pixel[c] = static_cast<uchar>(tensor.at(y, x, c));
 
-                for (int c = 0; c < channels; ++c)
-                    pixel[c] = static_cast<uchar>(tensor.at(y, x, c));
-
-                dst.at<cv::Vec3b>(y, x) = pixel;
+                    dst.at<cv::Vec3b>(y, x) = pixel;
+                } else {
+                    throw std::runtime_error("Unsupported tensor dimensions");
+                }
             }
         }
     }
