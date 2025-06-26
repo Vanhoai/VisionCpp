@@ -66,7 +66,7 @@ namespace core {
                     tensor.at(y, x) = static_cast<float32>(src.at<uchar>(y, x));
                 } else if (src.channels() == 3) {
                     // Color
-                    const cv::Vec3b pixel = src.at<cv::Vec3b>(y, x);
+                    const auto &pixel = src.at<cv::Vec3b>(y, x);
 
                     tensor.at(y, x, 0) = static_cast<float32>(pixel[0]);   // Blue
                     tensor.at(y, x, 1) = static_cast<float32>(pixel[1]);   // Green

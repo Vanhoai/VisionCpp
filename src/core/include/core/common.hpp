@@ -10,7 +10,6 @@
 #define COMMON_HPP
 
 #include <core/tensor.hpp>
-#include <iostream>
 #include <opencv2/opencv.hpp>
 
 #include "core.hpp"
