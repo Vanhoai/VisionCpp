@@ -19,7 +19,8 @@
  * - Otsu’s thresholding for automatic threshold selection
  */
 
-#include <opencv2/opencv.hpp>
+#include "core/core.hpp"
+#include "core/tensor.hpp"
 
 namespace processing {
 
@@ -52,7 +53,8 @@ namespace processing {
              * @param maxVal        Maximum value to use when thresholding.
              * @param type          Thresholding type to apply (binary, trunc, etc.).
              */
-            static void applyThresholding(const cv::Mat& src, cv::Mat& dst, int thresh, int maxVal,
+            static void applyThresholding(const core::Tensor<core::float32>& src,
+                                          core::Tensor<core::float32>& dst, int thresh, int maxVal,
                                           SimpleThresholding type);
 
             /**
@@ -65,10 +67,9 @@ namespace processing {
              * @param blockSize     Size of the local region (must be odd and > 1).
              * @param C             Constant subtracted from the mean or weighted mean.
              * @param type          Type of adaptive thresholding (mean or Gaussian).
-             *
-             * @throw std::invalid_argument If blockSize is not odd or less than 3.
              */
-            static void applyAdaptiveThresholding(const cv::Mat& src, cv::Mat& dst, int blockSize,
+            static void applyAdaptiveThresholding(const core::Tensor<core::float32>& src,
+                                                  core::Tensor<core::float32>& dst, int blockSize,
                                                   double C, AdaptiveThresholding type);
 
             /**
@@ -82,7 +83,8 @@ namespace processing {
              * @param blockSize     Neighborhood size (must be odd and > 1).
              * @param C             Constant subtracted from the mean.
              */
-            static void adaptiveThresholdMean(const cv::Mat& src, cv::Mat& dst, int blockSize,
+            static void adaptiveThresholdMean(const core::Tensor<core::float32>& src,
+                                              core::Tensor<core::float32>& dst, int blockSize,
                                               int C);
 
             /**
@@ -97,7 +99,8 @@ namespace processing {
              * @param C             Constant subtracted from the weighted mean.
              * @param sigma         Standard deviation of the Gaussian kernel.
              */
-            static void adaptiveThresholdGaussian(const cv::Mat& src, cv::Mat& dst, int blockSize,
+            static void adaptiveThresholdGaussian(const core::Tensor<core::float32>& src,
+                                                  core::Tensor<core::float32>& dst, int blockSize,
                                                   double C, double sigma);
 
             /**
@@ -121,7 +124,7 @@ namespace processing {
              * @param src Input grayscale image (1 channel).
              * @return Optimal threshold value found by Otsu’s method.
              */
-            static int otsuThresholding(const cv::Mat& src);
+            static int otsuThresholding(const core::Tensor<core::float32>& src);
     };
 
 }   // namespace processing

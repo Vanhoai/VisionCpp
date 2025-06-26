@@ -26,6 +26,7 @@ endif ()
 # Include utilities
 include(cmake/Dependencies.cmake)
 include(cmake/CompilerFlags.cmake)
+include(cmake/Functions.cmake)
 
 # Add subdirectories
 add_subdirectory(src)
