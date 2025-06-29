@@ -29,10 +29,8 @@ namespace core {
 
         const size_t width = image.cols;
         const size_t height = image.rows;
-        std::cout << "Image size: " << width << " x " << height << std::endl;
 
         auto [screenWidth, screenHeight] = getScreenResolution();
-        std::cout << "Screen size: " << screenWidth << " x " << screenHeight << std::endl;
 
         const size_t x = (screenWidth - width) / 2;
         const size_t y = (screenHeight - height) / 2;

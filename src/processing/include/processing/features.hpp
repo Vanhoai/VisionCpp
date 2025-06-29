@@ -19,7 +19,27 @@
  * - ORB (Oriented FAST and Rotated BRIEF)
  */
 
+#include <core/core.hpp>
+#include <core/tensor.hpp>
+#include <vector>
+
+using Layers = std::vector<std::vector<core::Tensor<core::float32>>>;
+
 namespace processing {
+
+    class Keypoint {
+        public:
+            float x, y;                      // Position in image
+            float scale;                     // Scale (sigma)
+            float angle;                     // Dominant orientation
+            int octave;                      // Octave index
+            int layer;                       // Layer within octave
+            std::vector<float> descriptor;   // 128-dimensional descriptor
+
+            Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0) {
+                descriptor.resize(128, 0.0f);
+            }
+    };
 
     /**
      * @brief Class for SIFT feature extraction.
@@ -42,10 +62,48 @@ namespace processing {
      * image gradients around the keypoint, resulting in a 128-dimensional vector.
      * 5. Keypoint matching: The descriptors can be used to match keypoints between different
      * images, allowing for image registration, object recognition, and other applications.
-     *
      */
     class SIFT {
+        private:
+            // SIFT parameters
+            static constexpr int NUM_OCTAVES = 4;
+            static constexpr int NUM_SCALES = 5;   // s+3 where s=2
+            static constexpr float SIGMA_0 = 1.6f;
+            static constexpr float K = 1.414213562f;   // 2^(1/s)
+            static constexpr float CONTRAST_THRESHOLD = 0.04f;
+            static constexpr float EDGE_THRESHOLD = 10.0f;
+            static constexpr float PEAK_RATIO = 0.8f;
+
+            // Descriptor parameters
+            static constexpr int DESC_WINDOW_SIZE = 16;
+            static constexpr int DESC_HIST_BINS = 8;
+            static constexpr int DESC_SIZE = 128;   // 4x4x8
+
+            static core::Tensor<core::float32> gaussianBlur(const core::Tensor<core::float32> &src,
+                                                            float sigma);
+            static core::Tensor<core::float32> downsample(const core::Tensor<core::float32> &src);
+            static core::Tensor<core::float32> convolveHorizontal(
+                const core::Tensor<core::float32> &src, const std::vector<float> &kernel);
+            static core::Tensor<core::float32> convolveVertical(
+                const core::Tensor<core::float32> &src, const std::vector<float> &kernel);
+            static core::Tensor<core::float32> substract(const core::Tensor<core::float32> &a,
+                                                         const core::Tensor<core::float32> &b);
+            static bool isLocalExtremum(int x, int y, const core::Tensor<core::float32> &current,
+                                        const core::Tensor<core::float32> &below,
+                                        const core::Tensor<core::float32> &above);
+
+            static Layers buildScaleSpace(const core::Tensor<core::float32> &src);
+            static Layers buildDoGSpace(const Layers &scaleSpace);
+            static std::vector<Keypoint> findKeypointCandidates(const Layers &dogSpace);
+            std::vector<Keypoint> refineKeypoints(const std::vector<Keypoint> &candidates,
+                                                  const Layers &docSpace);
+
+            void assignOrientations(std::vector<Keypoint> &keypoints, const Layers &scaleSpace);
+            void computeDescriptors(std::vector<Keypoint> &keypoints, const Layers &scaleSpace);
+
         public:
+            SIFT() = default;
+            std::vector<Keypoint> detectAndCompute(const core::Tensor<core::float32> &src);
     };
 
     /**

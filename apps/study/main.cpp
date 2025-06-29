@@ -7,11 +7,15 @@
 //
 
 #include <iostream>
+#include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "core/common.hpp"
+#include "core/core.hpp"
+#include "core/tensor.hpp"
+#include "processing/features.hpp"
 
-std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.jpg";
+std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.png";
 
 int main() {
     const cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
@@ -20,9 +24,11 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    // Convert to my tensor
-    core::Tensor<core::float32> source;
-    core::matToTensor(image, source);
+    core::Tensor<core::float32> tensor;
+    core::matToTensor(image, tensor);
+
+    processing::SIFT detector;
+    detector.detectAndCompute(tensor);
 
     return EXIT_SUCCESS;
 }
