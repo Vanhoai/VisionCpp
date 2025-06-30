@@ -148,8 +148,8 @@ namespace processing {
 
     bool SIFT::localizeKeypoint(Keypoint &kp, const Layers &dogSpace) {
         const auto &dog = dogSpace[kp.octave][kp.layer];
-        int x = static_cast<int>(kp.x / std::pow(2.0f, kp.octave));
-        int y = static_cast<int>(kp.y / std::pow(2.0f, kp.octave));
+        const int x = static_cast<int>(kp.x / std::pow(2.0f, kp.octave));
+        const int y = static_cast<int>(kp.y / std::pow(2.0f, kp.octave));
 
         const int height = dog.shape()[0];
         const int width = dog.shape()[1];
@@ -158,36 +158,36 @@ namespace processing {
             return false;
 
         // Compute derivatives
-        float dx = (dog.at(y, x + 1) - dog.at(y, x - 1)) * 0.5f;
-        float dy = (dog.at(y + 1, x) - dog.at(y - 1, x)) * 0.5f;
+        const float dx = (dog.at(y, x + 1) - dog.at(y, x - 1)) * 0.5f;
+        const float dy = (dog.at(y + 1, x) - dog.at(y - 1, x)) * 0.5f;
 
         // Compute second derivatives (Hessian)
-        float dxx = dog.at(y, x + 1) + dog.at(y, x - 1) - 2 * dog.at(y, x);
-        float dyy = dog.at(y + 1, x) + dog.at(y - 1, x) - 2 * dog.at(y, x);
+        const float dxx = dog.at(y, x + 1) + dog.at(y, x - 1) - 2 * dog.at(y, x);
+        const float dyy = dog.at(y + 1, x) + dog.at(y - 1, x) - 2 * dog.at(y, x);
 
-        float dxy = (dog.at(y + 1, x + 1) - dog.at(y + 1, x - 1) - dog.at(y - 1, x + 1) +
-                     dog.at(y - 1, x - 1)) *
-                    0.25f;
+        const float dxy = (dog.at(y + 1, x + 1) - dog.at(y + 1, x - 1) - dog.at(y - 1, x + 1) +
+                           dog.at(y - 1, x - 1)) *
+                          0.25f;
 
         // Solve linear system to find offset
-        float det = dxx * dyy - dxy * dxy;
+        const float det = dxx * dyy - dxy * dxy;
         if (std::abs(det) < 1e-6)
             return false;
 
-        float offset_x = -(dyy * dx - dxy * dy) / det;
-        float offset_y = -(dxx * dy - dxy * dx) / det;
+        const float offsetX = -(dyy * dx - dxy * dy) / det;
+        const float offsetY = -(dxx * dy - dxy * dx) / det;
 
         // Check if offset is reasonable
-        if (std::abs(offset_x) > 0.5f || std::abs(offset_y) > 0.5f)
+        if (std::abs(offsetX) > 0.5f || std::abs(offsetY) > 0.5f)
             return false;
 
         // Update keypoint position
-        kp.x += offset_x * std::pow(2.0f, kp.octave);
-        kp.y += offset_y * std::pow(2.0f, kp.octave);
+        kp.x += offsetX * std::pow(2.0f, kp.octave);
+        kp.y += offsetY * std::pow(2.0f, kp.octave);
 
         // Check contrast
-        float contrast = dog.at(y, x) + 0.5f * (dx * offset_x + dy * offset_y);
-        if (std::abs(contrast) < CONTRAST_THRESHOLD)
+        if (const float contrast = dog.at(y, x) + 0.5f * (dx * offsetX + dy * offsetY);
+            std::abs(contrast) < CONTRAST_THRESHOLD)
             return false;
 
         return true;
@@ -205,37 +205,29 @@ namespace processing {
             return true;
 
         // Compute Hessian matrix
-        float dxx = dog.at(y, x + 1) + dog.at(y, x - 1) - 2 * dog.at(y, x);
-        float dyy = dog.at(y + 1, x) + dog.at(y - 1, x) - 2 * dog.at(y, x);
-        float dxy = (dog.at(y + 1, x + 1) - dog.at(y + 1, x - 1) - dog.at(y - 1, x + 1) +
-                     dog.at(y - 1, x - 1)) *
-                    0.25f;
+        const float dxx = dog.at(y, x + 1) + dog.at(y, x - 1) - 2 * dog.at(y, x);
+        const float dyy = dog.at(y + 1, x) + dog.at(y - 1, x) - 2 * dog.at(y, x);
+        const float dxy = (dog.at(y + 1, x + 1) - dog.at(y + 1, x - 1) - dog.at(y - 1, x + 1) +
+                           dog.at(y - 1, x - 1)) *
+                          0.25f;
 
-        float trace = dxx + dyy;
-        float det = dxx * dyy - dxy * dxy;
+        const float trace = dxx + dyy;
+        const float det = dxx * dyy - dxy * dxy;
 
         if (det <= 0)
             return true;
 
-        float ratio = trace * trace / det;
-        float threshold = (EDGE_THRESHOLD + 1) * (EDGE_THRESHOLD + 1) / EDGE_THRESHOLD;
+        const float ratio = trace * trace / det;
+        constexpr float threshold = (EDGE_THRESHOLD + 1) * (EDGE_THRESHOLD + 1) / EDGE_THRESHOLD;
 
         return ratio > threshold;
     }
 
     Layers SIFT::buildScaleSpace(const core::Tensor<core::float32> &src) {
-        // 4 octaves, 5 scales per octave (s+3 where s=2)
-        // Example size of input: 512 x 512
-        // Octave 0: [blur00, blur01, blur02, blur03, blur04] -> Size: 512 x 512
-        // Octave 1: [blur10, blur11, blur12, blur13, blur14] -> Size: 256 x 256
-        // Octave 2: [blur20, blur21, blur22, blur23, blur24] -> Size: 128 x 128
-        // Octave 3: [blur30, blur31, blur32, blur33, blur34] -> Size: 64 x 64
-        // Each blur is a Gaussian blur with increasing sigma
-
         Layers scaleSpace(NUM_OCTAVES);
 
         core::Tensor<core::float32> grayscale;
-        processing::Transformations::convertToGrayScale(src, grayscale);
+        Transformations::convertToGrayScale(src, grayscale);
 
         for (int octave = 0; octave < NUM_OCTAVES; octave++) {
             scaleSpace[octave].resize(NUM_SCALES);
@@ -312,9 +304,8 @@ namespace processing {
                                                 const Layers &dogSpace) {
         std::vector<Keypoint> refined;
         for (const auto &candidate : candidates) {
-            Keypoint kp = candidate;
             // Subpixel localization using Taylor expansion
-            if (localizeKeypoint(kp, dogSpace)) {
+            if (Keypoint kp = candidate; localizeKeypoint(kp, dogSpace)) {
                 // Remove edge responses using Hessian
                 if (!isEdgeResponse(kp, dogSpace))
                     refined.push_back(kp);
@@ -338,19 +329,21 @@ namespace processing {
         std::vector<float> hist(36, 0.0f);
         for (int dy = -radius; dy <= radius; dy++) {
             for (int dx = -radius; dx <= radius; dx++) {
-                int px = x + dx, py = y + dy;
+                const int px = x + dx, py = y + dy;
                 if (px < 1 || px >= width - 1 || py < 1 || py >= height - 1)
                     continue;
 
                 // Compute gradient
-                float gx = image.at(py, px + 1) - image.at(py, px - 1);
-                float gy = image.at(py + 1, px) - image.at(py - 1, px);
-                float magnitude = std::sqrt(gx * gx + gy * gy);
-                float angle = std::atan2(gy, gx);
+                const float gx = image.at(py, px + 1) - image.at(py, px - 1);
+                const float gy = image.at(py + 1, px) - image.at(py - 1, px);
+                const float magnitude = std::sqrt(gx * gx + gy * gy);
+                const float angle = std::atan2(gy, gx);
+
                 // Gaussian weighting
-                float weight = std::exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
+                const float weight = std::exp(-(dx * dx + dy * dy) / (2 * sigma * sigma));
+
                 // Add to histogram
-                int bin = static_cast<int>((angle + M_PI) * 36 / (2 * M_PI)) % 36;
+                const int bin = static_cast<int>((angle + M_PI) * 36 / (2 * M_PI)) % 36;
                 hist[bin] += magnitude * weight;
             }
         }
@@ -366,16 +359,16 @@ namespace processing {
 
         // Find peaks
         std::vector<float> orientations;
-        float maxVal = *std::max_element(hist.begin(), hist.end());
+        const float maxVal = *std::max_element(hist.begin(), hist.end());
 
         for (int i = 0; i < 36; i++) {
             if (hist[i] > 0.8f * maxVal) {
                 // Parabolic interpolation for sub-bin accuracy
-                float prev = hist[(i - 1 + 36) % 36];
-                float curr = hist[i];
-                float next = hist[(i + 1) % 36];
+                const float prev = hist[(i - 1 + 36) % 36];
+                const float curr = hist[i];
+                const float next = hist[(i + 1) % 36];
 
-                float offset = 0.5f * (prev - next) / (prev - 2 * curr + next);
+                const float offset = 0.5f * (prev - next) / (prev - 2 * curr + next);
                 float angle = (i + offset) * 2 * M_PI / 36 - M_PI;
                 orientations.push_back(angle);
             }
@@ -388,10 +381,8 @@ namespace processing {
         std::vector<Keypoint> orientedKeypoints;
 
         for (auto &kp : keypoints) {
-            auto orientations = computeOrientations(kp, scaleSpace);
-
             // Create keypoint for dominant orientation
-            if (!orientations.empty()) {
+            if (auto orientations = computeOrientations(kp, scaleSpace); !orientations.empty()) {
                 kp.angle = orientations[0];
                 orientedKeypoints.push_back(kp);
 
@@ -414,16 +405,17 @@ namespace processing {
     void SIFT::computeDescriptor(Keypoint &kp, const Layers &scaleSpace) {
         const auto &image = scaleSpace[kp.octave][kp.layer];
 
-        int x = static_cast<int>(kp.x / std::pow(2.0f, kp.octave));
-        int y = static_cast<int>(kp.y / std::pow(2.0f, kp.octave));
+        const int x = static_cast<int>(kp.x / std::pow(2.0f, kp.octave));
+        const int y = static_cast<int>(kp.y / std::pow(2.0f, kp.octave));
 
-        float scale = kp.scale / std::pow(2.0f, kp.octave);
-        float cos_angle = std::cos(kp.angle);
-        float sin_angle = std::sin(kp.angle);
+        const float scale = kp.scale / std::pow(2.0f, kp.octave);
+        const float cosAngle = std::cos(kp.angle);
+        const float sinAngle = std::sin(kp.angle);
+
         // 4x4 subregions, each 4x4 pixels
-        int hist_size = 8;   // 8 orientation bins
+        const int histSize = 8;   // 8 orientation bins
 
-        std::vector descriptor(4 * 4 * hist_size, 0.0f);
+        std::vector descriptor(4 * 4 * histSize, 0.0f);
 
         const int height = image.shape()[0];
         const int width = image.shape()[1];
@@ -432,8 +424,8 @@ namespace processing {
         for (int i = -8; i < 8; i++) {
             for (int j = -8; j < 8; j++) {
                 // Rotate sample point
-                const float dx = i * cos_angle - j * sin_angle;
-                const float dy = i * sin_angle + j * cos_angle;
+                const float dx = i * cosAngle - j * sinAngle;
+                const float dy = i * sinAngle + j * cosAngle;
                 const int px = x + static_cast<int>(dx * scale);
                 const int py = y + static_cast<int>(dy * scale);
 
@@ -450,28 +442,27 @@ namespace processing {
                 const float weight = std::exp(-(i * i + j * j) / (2 * (8 * scale) * (8 * scale)));
 
                 // Determine which 4x4 subregion this sample belongs to
-                int sub_x = (i + 8) / 4;   // 0-3
-                int sub_y = (j + 8) / 4;   // 0-3
+                int subX = (i + 8) / 4;   // 0-3
+                int subY = (j + 8) / 4;   // 0-3
 
-                if (sub_x >= 4)
-                    sub_x = 3;
+                if (subX >= 4)
+                    subX = 3;
 
-                if (sub_y >= 4)
-                    sub_y = 3;
+                if (subY >= 4)
+                    subY = 3;
 
                 // Determine orientation bin
-                const int bin =
-                    static_cast<int>((angle + M_PI) * hist_size / (2 * M_PI)) % hist_size;
+                const int bin = static_cast<int>((angle + M_PI) * histSize / (2 * M_PI)) % histSize;
 
                 // Add to descriptor
-                int desc_idx = (sub_y * 4 + sub_x) * hist_size + bin;
-                descriptor[desc_idx] += magnitude * weight;
+                const int idx = (subY * 4 + subX) * histSize + bin;
+                descriptor[idx] += magnitude * weight;
             }
         }
 
         // Normalize descriptor
         float norm = 0.0f;
-        for (float val : descriptor) norm += val * val;
+        for (const float val : descriptor) norm += val * val;
 
         norm = std::sqrt(norm);
         if (norm > 0) {
@@ -483,7 +474,7 @@ namespace processing {
 
             // Renormalize
             norm = 0.0f;
-            for (float val : descriptor) norm += val * val;
+            for (const float val : descriptor) norm += val * val;
 
             norm = std::sqrt(norm);
             if (norm > 0)
@@ -510,7 +501,7 @@ namespace processing {
         assignOrientations(keypoints, scaleSpace);
 
         // Step 6: Compute descriptors
-        // computeDescriptors(keypoints, scaleSpace);
+        computeDescriptors(keypoints, scaleSpace);
 
         return keypoints;
     }

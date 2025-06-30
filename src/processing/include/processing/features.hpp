@@ -39,16 +39,6 @@ namespace processing {
             Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0) {
                 descriptor.resize(128, 0.0f);
             }
-
-            // copy constructor
-            Keypoint(const Keypoint &other)
-                : x(other.x),
-                  y(other.y),
-                  scale(other.scale),
-                  angle(other.angle),
-                  octave(other.octave),
-                  layer(other.layer),
-                  descriptor(other.descriptor) {}
     };
 
     /**
