@@ -39,6 +39,16 @@ namespace processing {
             Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0) {
                 descriptor.resize(128, 0.0f);
             }
+
+            // copy constructor
+            Keypoint(const Keypoint &other)
+                : x(other.x),
+                  y(other.y),
+                  scale(other.scale),
+                  angle(other.angle),
+                  octave(other.octave),
+                  layer(other.layer),
+                  descriptor(other.descriptor) {}
     };
 
     /**
@@ -92,18 +102,27 @@ namespace processing {
                                         const core::Tensor<core::float32> &below,
                                         const core::Tensor<core::float32> &above);
 
+            static bool localizeKeypoint(Keypoint &kp, const Layers &dogSpace);
+            static bool isEdgeResponse(const Keypoint &kp, const Layers &dogSpace);
+            static std::vector<float> computeOrientations(const Keypoint &kp,
+                                                          const Layers &scaleSpace);
+
+            static void computeDescriptor(Keypoint &kp, const Layers &scaleSpace);
+
             static Layers buildScaleSpace(const core::Tensor<core::float32> &src);
             static Layers buildDoGSpace(const Layers &scaleSpace);
             static std::vector<Keypoint> findKeypointCandidates(const Layers &dogSpace);
-            std::vector<Keypoint> refineKeypoints(const std::vector<Keypoint> &candidates,
-                                                  const Layers &docSpace);
+            static std::vector<Keypoint> refineKeypoints(const std::vector<Keypoint> &candidates,
+                                                         const Layers &dogSpace);
 
-            void assignOrientations(std::vector<Keypoint> &keypoints, const Layers &scaleSpace);
-            void computeDescriptors(std::vector<Keypoint> &keypoints, const Layers &scaleSpace);
+            static void assignOrientations(std::vector<Keypoint> &keypoints,
+                                           const Layers &scaleSpace);
+            static void computeDescriptors(std::vector<Keypoint> &keypoints,
+                                           const Layers &scaleSpace);
 
         public:
             SIFT() = default;
-            std::vector<Keypoint> detectAndCompute(const core::Tensor<core::float32> &src);
+            static std::vector<Keypoint> detectAndCompute(const core::Tensor<core::float32> &src);
     };
 
     /**
