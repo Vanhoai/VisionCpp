@@ -8,10 +8,11 @@
 #include <random>
 #include <stdexcept>
 
+#include "core/core.hpp"
+
 namespace processing {
 
-    void Transformations::convertColorSpace(const core::Tensor<core::float32>& src,
-                                            core::Tensor<core::float32>& dst,
+    void Transformations::convertColorSpace(const core::TensorF32& src, core::TensorF32& dst,
                                             ColorSpace colorSpace) {
         if (colorSpace == ColorSpace::BGR_TO_HSV) {
             convertBGRToHSV(src, dst);
@@ -42,8 +43,7 @@ namespace processing {
      *
      * - V = Cmax
      */
-    void Transformations::convertBGRToHSV(const core::Tensor<core::float32>& src,
-                                          core::Tensor<core::float32>& dst) {
+    void Transformations::convertBGRToHSV(const core::TensorF32& src, core::TensorF32& dst) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
@@ -54,7 +54,7 @@ namespace processing {
         if (src.shape()[2] != 3)
             throw std::invalid_argument("Input image must be in BGR format (3 channels)");
 
-        dst = core::Tensor<core::float32>(src.shape());
+        dst = core::TensorF32(src.shape());
 
         for (size_t i = 0; i < src.shape()[0]; i++) {
             for (size_t j = 0; j < src.shape()[1]; j++) {
@@ -115,8 +115,7 @@ namespace processing {
      * - G = (G' + m) * 255
      * - R = (R' + m) * 255
      */
-    void Transformations::convertHSVtoBGR(const core::Tensor<core::float32>& src,
-                                          core::Tensor<core::float32>& dst) {
+    void Transformations::convertHSVtoBGR(const core::TensorF32& src, core::TensorF32& dst) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
@@ -127,7 +126,7 @@ namespace processing {
         if (src.shape()[2] != 3)
             throw std::invalid_argument("Input image must be in HSV format (3 channels)");
 
-        dst = core::Tensor<core::float32>(src.shape());
+        dst = core::TensorF32(src.shape());
 
         for (size_t i = 0; i < src.shape()[0]; i++) {
             for (size_t j = 0; j < src.shape()[1]; j++) {
@@ -178,9 +177,7 @@ namespace processing {
         }
     }
 
-    void Transformations::convertToGrayScale(const core::Tensor<core::float32>& src,
-                                             core::Tensor<core::float32>& dst) {
-        // src: BGR format like OpenCV saved
+    void Transformations::convertToGrayScale(const core::TensorF32& src, core::TensorF32& dst) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
@@ -194,7 +191,7 @@ namespace processing {
         // Convert to grayscale using the formula
         // F(R, G, B) = 0.299 * R + 0.587 * G + 0.114 * B
 
-        dst = core::Tensor<core::float32>(src.shape()[0], src.shape()[1]);
+        dst = core::TensorF32(src.shape()[0], src.shape()[1]);
 
         for (size_t i = 0; i < src.shape()[0]; ++i) {
             for (size_t j = 0; j < src.shape()[1]; ++j) {
@@ -206,16 +203,45 @@ namespace processing {
         }
     }
 
-    void Transformations::resize(const core::Tensor<core::float32>& src,
-                                 core::Tensor<core::float32>& dst, const size_t width,
-                                 const size_t height) {
+    core::TensorF32 Transformations::convertToGrayScale(const core::TensorF32& src) {
+        if (src.empty())
+            throw std::invalid_argument("Input image is not empty");
+
+        if (src.shape().size() != 3)
+            throw std::invalid_argument(
+                "Input image must have 3 dimensions (height, width, channels)");
+
+        if (src.shape()[2] != 3)
+            throw std::invalid_argument("Input image must be in BGR format (3 channels)");
+
+        // Convert to grayscale using the formula
+        // F(R, G, B) = 0.299 * R + 0.587 * G + 0.114 * B
+
+        const size_t height = src.shape()[0];
+        const size_t width = src.shape()[1];
+
+        core::TensorF32 dst(height, width);
+        for (size_t y = 0; y < height; y++) {
+            for (size_t x = 0; x < width; x++) {
+                const core::float32 grayValue =
+                    0.299f * src.at(y, x, 2) + 0.587f * src.at(y, x, 1) + 0.114f * src.at(y, x, 0);
+
+                dst.at(y, x) = grayValue;
+            }
+        }
+
+        return dst;
+    }
+
+    void Transformations::resize(const core::TensorF32& src, core::TensorF32& dst,
+                                 const size_t width, const size_t height) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
         if (width <= 0 || height <= 0)
             throw std::invalid_argument("New size must be positive");
 
-        dst = core::Tensor<core::float32>(height, width, src.shape()[2]);
+        dst = core::TensorF32(height, width, src.shape()[2]);
 
         // calculate scale factors
         const double scaleY = static_cast<double>(src.shape()[0]) / height;
@@ -248,8 +274,7 @@ namespace processing {
         }
     }
 
-    void Transformations::normalize(const core::Tensor<core::float32>& src,
-                                    core::Tensor<core::float32>& dst,
+    void Transformations::normalize(const core::TensorF32& src, core::TensorF32& dst,
                                     const std::vector<core::float32>& mean,
                                     const std::vector<core::float32>& std) {
         if (src.empty())
@@ -271,9 +296,8 @@ namespace processing {
         }
     }
 
-    void Transformations::pad(const core::Tensor<core::float32>& src,
-                              core::Tensor<core::float32>& dst, const core::float32 padding,
-                              const core::float32 value) {
+    void Transformations::pad(const core::TensorF32& src, core::TensorF32& dst,
+                              const core::float32 padding, const core::float32 value) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
@@ -304,16 +328,16 @@ namespace processing {
         }
     }
 
-    void Transformations::crop(const core::Tensor<core::float32>& src,
-                               core::Tensor<core::float32>& dst, const core::Rect& roi) {
+    void Transformations::crop(const core::TensorF32& src, core::TensorF32& dst,
+                               const core::Rect& roi) {
         if (roi.x < 0 || roi.y < 0 || roi.x + roi.width > src.shape()[1] ||
             roi.y + roi.height > src.shape()[0])
             throw std::invalid_argument("ROI is out of bounds of the input image");
 
         if (src.shape()[2] == 1)
-            dst = core::Tensor<core::float32>(roi.height, roi.width, 1);
+            dst = core::TensorF32(roi.height, roi.width, 1);
         else if (src.shape()[2] == 3)
-            dst = core::Tensor<core::float32>(roi.height, roi.width, 3);
+            dst = core::TensorF32(roi.height, roi.width, 3);
         else
             throw std::invalid_argument("Unsupported number of channels for cropping");
 
@@ -340,9 +364,8 @@ namespace processing {
         }
     }
 
-    void Transformations::randomCrop(const core::Tensor<core::float32>& src,
-                                     core::Tensor<core::float32>& dst, const size_t width,
-                                     const size_t height) {
+    void Transformations::randomCrop(const core::TensorF32& src, core::TensorF32& dst,
+                                     const size_t width, const size_t height) {
         if (src.empty())
             throw std::invalid_argument("Input image is not empty");
 
@@ -364,13 +387,13 @@ namespace processing {
         crop(src, dst, core::Rect(x, y, width, height));
     }
 
-    void Transformations::rotate(const core::Tensor<core::float32>& src,
-                                 core::Tensor<core::float32>& dst, RotateAngle angle) {
+    void Transformations::rotate(const core::TensorF32& src, core::TensorF32& dst,
+                                 RotateAngle angle) {
         if (src.empty())
             throw std::invalid_argument("Input image is empty");
 
         if (angle == RotateAngle::CLOCKWISE_90) {
-            dst = core::Tensor<core::float32>(src.shape()[1], src.shape()[0], src.shape()[2]);
+            dst = core::TensorF32(src.shape()[1], src.shape()[0], src.shape()[2]);
 
             for (size_t y = 0; y < src.shape()[0]; ++y) {
                 for (size_t x = 0; x < src.shape()[1]; ++x) {
@@ -416,7 +439,7 @@ namespace processing {
             }
 
         } else if (angle == RotateAngle::CLOCKWISE_270) {
-            dst = core::Tensor<core::float32>(src.shape()[1], src.shape()[0], src.shape()[2]);
+            dst = core::TensorF32(src.shape()[1], src.shape()[0], src.shape()[2]);
 
             for (size_t y = 0; y < src.shape()[0]; ++y) {
                 for (size_t x = 0; x < src.shape()[1]; ++x) {
@@ -441,8 +464,8 @@ namespace processing {
         }
     }
 
-    void Transformations::flip(const core::Tensor<core::float32>& src,
-                               core::Tensor<core::float32>& dst, FlipCode flipCode) {
+    void Transformations::flip(const core::TensorF32& src, core::TensorF32& dst,
+                               FlipCode flipCode) {
         if (src.empty())
             throw std::invalid_argument("Input image is empty");
 

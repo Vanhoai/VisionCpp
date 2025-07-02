@@ -22,6 +22,8 @@ namespace core {
                                const std::string &windowName = "Window");
 
     void matToTensor(const cv::Mat &src, Tensor<float32> &tensor);
+    core::TensorF32 convertMatToTensor(const cv::Mat &src);
+
     void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst);
 }   // namespace core
 

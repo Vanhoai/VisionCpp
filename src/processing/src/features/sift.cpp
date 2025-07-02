@@ -1,19 +1,18 @@
 //
-// File        : features.cpp
+// File        : sift.cpp
 // Author      : Hinsun
 // Date        : 2025-06-26
 // Copyright   : (c) 2025 Tran Van Hoai
 // License     : MIT
 //
 
-#include "processing/features.hpp"
-
 #include "core/core.hpp"
+#include "processing/features.hpp"
 #include "processing/transformations.hpp"
 
 namespace processing {
 
-    core::Tensor<core::float32> SIFT::downsample(const core::Tensor<core::float32> &src) {
+    core::TensorF32 SIFT::downsample(const core::TensorF32 &src) {
         const std::vector<size_t> &shape = src.shape();
         const size_t height = shape[0];
         const size_t width = shape[1];
@@ -21,7 +20,7 @@ namespace processing {
         const size_t newHeight = height / 2;
         const size_t newWidth = width / 2;
 
-        core::Tensor<core::float32> dst(newHeight, newWidth);
+        core::TensorF32 dst(newHeight, newWidth);
 
         for (size_t y = 0; y < newHeight; y++)
             for (size_t x = 0; x < newWidth; x++) dst.at(y, x) = src.at(y * 2, x * 2);
@@ -29,8 +28,8 @@ namespace processing {
         return dst;
     }
 
-    core::Tensor<core::float32> SIFT::convolveHorizontal(const core::Tensor<core::float32> &src,
-                                                         const std::vector<float> &kernel) {
+    core::TensorF32 SIFT::convolveHorizontal(const core::TensorF32 &src,
+                                             const std::vector<float> &kernel) {
         const std::vector<size_t> &shape = src.shape();
         const size_t height = shape[0];
         const size_t width = shape[1];
@@ -38,7 +37,7 @@ namespace processing {
         const int ksize = static_cast<int>(kernel.size());
         const int khalf = ksize / 2;
 
-        core::Tensor<core::float32> dst(height, width);
+        core::TensorF32 dst(height, width);
         for (size_t y = 0; y < height; ++y) {
             for (size_t x = 0; x < width; ++x) {
                 float sum = 0.0f;
@@ -56,8 +55,8 @@ namespace processing {
         return dst;
     }
 
-    core::Tensor<core::float32> SIFT::convolveVertical(const core::Tensor<core::float32> &src,
-                                                       const std::vector<float> &kernel) {
+    core::TensorF32 SIFT::convolveVertical(const core::TensorF32 &src,
+                                           const std::vector<float> &kernel) {
         const std::vector<size_t> &shape = src.shape();
         const size_t height = shape[0];
         const size_t width = shape[1];
@@ -65,7 +64,7 @@ namespace processing {
         const int ksize = static_cast<int>(kernel.size());
         const int khalf = ksize / 2;
 
-        core::Tensor<core::float32> dst(height, width);
+        core::TensorF32 dst(height, width);
         for (size_t y = 0; y < height; ++y) {
             for (size_t x = 0; x < width; ++x) {
                 float sum = 0.0f;
@@ -83,8 +82,7 @@ namespace processing {
         return dst;
     }
 
-    core::Tensor<core::float32> SIFT::gaussianBlur(const core::Tensor<core::float32> &src,
-                                                   const float sigma) {
+    core::TensorF32 SIFT::gaussianBlur(const core::TensorF32 &src, const float sigma) {
         int kernelSize = static_cast<int>(6 * sigma) | 1;   // Ensure odd size
         std::vector<float> kernel(kernelSize);
 
@@ -101,23 +99,21 @@ namespace processing {
         for (float &val : kernel) val /= sum;
 
         // Apply separable convolution (horizontal then vertical)
-        core::Tensor<core::float32> temp = convolveHorizontal(src, kernel);
+        core::TensorF32 temp = convolveHorizontal(src, kernel);
         return convolveVertical(temp, kernel);
     }
 
-    core::Tensor<core::float32> SIFT::substract(const core::Tensor<core::float32> &a,
-                                                const core::Tensor<core::float32> &b) {
+    core::TensorF32 SIFT::substract(const core::TensorF32 &a, const core::TensorF32 &b) {
         if (a.shape() != b.shape())
             throw std::invalid_argument("Tensors must have the same shape for subtraction.");
 
-        core::Tensor<core::float32> dst(a.shape());
+        core::TensorF32 dst(a.shape());
         for (size_t i = 0; i < a.size(); i++) dst.data()[i] = a.data()[i] - b.data()[i];
         return dst;
     }
 
-    bool SIFT::isLocalExtremum(int x, int y, const core::Tensor<core::float32> &current,
-                               const core::Tensor<core::float32> &below,
-                               const core::Tensor<core::float32> &above) {
+    bool SIFT::isLocalExtremum(int x, int y, const core::TensorF32 &current,
+                               const core::TensorF32 &below, const core::TensorF32 &above) {
         float val = current.at(y, x);
         bool isMax = true, isMin = true;
 
@@ -223,17 +219,17 @@ namespace processing {
         return ratio > threshold;
     }
 
-    Layers SIFT::buildScaleSpace(const core::Tensor<core::float32> &src) {
+    Layers SIFT::buildScaleSpace(const core::TensorF32 &src) {
         Layers scaleSpace(NUM_OCTAVES);
 
-        core::Tensor<core::float32> grayscale;
+        core::TensorF32 grayscale;
         Transformations::convertToGrayScale(src, grayscale);
 
         for (int octave = 0; octave < NUM_OCTAVES; octave++) {
             scaleSpace[octave].resize(NUM_SCALES);
 
             // Get base image for this octave
-            core::Tensor<core::float32> baseImage;
+            core::TensorF32 baseImage;
             if (octave == 0) {
                 baseImage = grayscale;
             } else {
@@ -484,7 +480,7 @@ namespace processing {
         kp.descriptor = descriptor;
     }
 
-    std::vector<Keypoint> SIFT::detectAndCompute(const core::Tensor<core::float32> &src) {
+    std::vector<Keypoint> SIFT::detectAndCompute(const core::TensorF32 &src) {
         // Step 1: Build scale space
         const Layers scaleSpace = buildScaleSpace(src);
 
@@ -501,7 +497,7 @@ namespace processing {
         assignOrientations(keypoints, scaleSpace);
 
         // Step 6: Compute descriptors
-        computeDescriptors(keypoints, scaleSpace);
+        // computeDescriptors(keypoints, scaleSpace);
 
         return keypoints;
     }

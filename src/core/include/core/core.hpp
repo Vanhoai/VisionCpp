@@ -6,15 +6,18 @@
 // License     : MIT
 //
 
-#ifndef MACROS_HPP
-#define MACROS_HPP
+#ifndef CORE_HPP
+#define CORE_HPP
 
 #pragma once
 #include <cstddef>
 #include <cstdint>
 
+#include "core/tensor.hpp"
+
 namespace core {
 
+    // Define common types for tensors and basic data types
     using int8 = std::int8_t;
     using int16 = std::int16_t;
     using int32 = std::int32_t;
@@ -28,6 +31,20 @@ namespace core {
     using float32 = float;
     using float64 = double;
 
+    // Define tensor types for various data types
+    using TensorI8 = Tensor<core::int8>;
+    using TensorI16 = Tensor<core::int16>;
+    using TensorI32 = Tensor<core::int32>;
+    using TensorI64 = Tensor<core::int64>;
+
+    using TensorU8 = Tensor<core::uint8>;
+    using TensorU16 = Tensor<core::uint16>;
+    using TensorU32 = Tensor<core::uint32>;
+    using TensorU64 = Tensor<core::uint64>;
+
+    using TensorF32 = Tensor<core::float32>;
+    using TensorF64 = Tensor<core::float64>;
+
     class Rect {
         public:
             size_t x, y, width, height;
@@ -38,4 +55,4 @@ namespace core {
 
 }   // namespace core
 
-#endif   // MACROS_HPP
+#endif   // CORE_HPP

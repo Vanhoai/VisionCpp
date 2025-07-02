@@ -11,10 +11,6 @@ using namespace cv;
 using namespace std;
 
 namespace feature_detection {
-    void SIFTDetector::detect(const Mat &image, vector<Keypoint> &keypoints) {
-        keypoints = std::vector<Keypoint>();
-        // Build scale space
-    }
 
     Mat SIFTDetector::createGaussianKernel(double sigma, int size) {
         if (size == 0)
@@ -28,8 +24,7 @@ namespace feature_detection {
             for (int j = 0; j < size; j++) {
                 const double x = i - center;
                 const double y = j - center;
-                const double value =
-                    exp(-(x * x + y * y) / (2 * sigma * sigma));
+                const double value = exp(-(x * x + y * y) / (2 * sigma * sigma));
 
                 kernel.at<float>(i, j) = static_cast<float>(value);
                 sum += value;
@@ -49,8 +44,7 @@ namespace feature_detection {
             scaleSpace[o][0] = currentImage.clone();   // original image
 
             for (int s = 1; s < scales + 3; s++) {
-                const double currentSigma =
-                    sigma * pow(2.0, s / static_cast<double>(scales));
+                const double currentSigma = sigma * pow(2.0, s / static_cast<double>(scales));
                 Mat kernel = createGaussianKernel(currentSigma);
                 filter2D(scaleSpace[o][s - 1], scaleSpace[o][s], -1, kernel);
             }
@@ -63,8 +57,7 @@ namespace feature_detection {
         return scaleSpace;
     }
 
-    vector<vector<Mat>>
-    SIFTDetector::buildDoG(const vector<vector<Mat>> &scaleSpace) const {
+    vector<vector<Mat>> SIFTDetector::buildDoG(const vector<vector<Mat>> &scaleSpace) const {
         vector<vector<Mat>> dogSpace(octaves);
 
         for (int o = 0; o < octaves; o++) {
@@ -77,10 +70,8 @@ namespace feature_detection {
         return dogSpace;
     }
 
-    bool SIFTDetector::isExtremum(const vector<vector<Mat>> &dogSpace,
-                                  const int octave, const int scale,
-                                  const int x, const int y) {
-
+    bool SIFTDetector::isExtremum(const vector<vector<Mat>> &dogSpace, const int octave,
+                                  const int scale, const int x, const int y) {
         const float centerValue = dogSpace[octave][scale].at<float>(y, x);
         bool isMax = true, isMin = true;
         for (int ds = -1; ds <= 1; ds++) {
@@ -105,8 +96,8 @@ namespace feature_detection {
         return isMax || isMin;
     }
 
-    bool SIFTDetector::isValidKeypoint(const vector<vector<Mat>> &dogSpace,
-                                       int octave, int scale, int x, int y) {
+    bool SIFTDetector::isValidKeypoint(const vector<vector<Mat>> &dogSpace, int octave, int scale,
+                                       int x, int y) {
         float value = dogSpace[octave][scale].at<float>(y, x);
         if (abs(value) < contrastThreshold)
             return false;
@@ -126,8 +117,7 @@ namespace feature_detection {
         if (det <= 0)
             return false;
         float ratio = trace * trace / det;
-        float threshold =
-            (edgeThreshold + 1) * (edgeThreshold + 1) / edgeThreshold;
+        float threshold = (edgeThreshold + 1) * (edgeThreshold + 1) / edgeThreshold;
 
         return ratio < threshold;
     }

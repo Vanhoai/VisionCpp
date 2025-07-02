@@ -23,7 +23,7 @@
 #include <core/tensor.hpp>
 #include <vector>
 
-using Layers = std::vector<std::vector<core::Tensor<core::float32>>>;
+using Layers = std::vector<std::vector<core::TensorF32>>;
 
 namespace processing {
 
@@ -53,15 +53,15 @@ namespace processing {
      *
      * How SIFT works:
      * 1. Scale-space extrema detection: SIFT identifies potential keypoints by searching for
-     * extrema in a scale-space representation of the image.
+     *    extrema in a scale-space representation of the image.
      * 2. Keypoint localization: The algorithm refines the keypoints by fitting a model to the
-     * local image structure.
+     *    local image structure.
      * 3. Orientation assignment: Each keypoint is assigned a consistent orientation based on the
-     * local image gradient, which makes the descriptors rotation-invariant.
+     *    local image gradient, which makes the descriptors rotation-invariant.
      * 4. Descriptor generation: SIFT computes a descriptor for each keypoint based on the local
-     * image gradients around the keypoint, resulting in a 128-dimensional vector.
+     *    image gradients around the keypoint, resulting in a 128-dimensional vector.
      * 5. Keypoint matching: The descriptors can be used to match keypoints between different
-     * images, allowing for image registration, object recognition, and other applications.
+     *    images, allowing for image registration, object recognition, and other applications.
      */
     class SIFT {
         private:
@@ -79,18 +79,15 @@ namespace processing {
             static constexpr int DESC_HIST_BINS = 8;
             static constexpr int DESC_SIZE = 128;   // 4x4x8
 
-            static core::Tensor<core::float32> gaussianBlur(const core::Tensor<core::float32> &src,
-                                                            float sigma);
-            static core::Tensor<core::float32> downsample(const core::Tensor<core::float32> &src);
-            static core::Tensor<core::float32> convolveHorizontal(
-                const core::Tensor<core::float32> &src, const std::vector<float> &kernel);
-            static core::Tensor<core::float32> convolveVertical(
-                const core::Tensor<core::float32> &src, const std::vector<float> &kernel);
-            static core::Tensor<core::float32> substract(const core::Tensor<core::float32> &a,
-                                                         const core::Tensor<core::float32> &b);
-            static bool isLocalExtremum(int x, int y, const core::Tensor<core::float32> &current,
-                                        const core::Tensor<core::float32> &below,
-                                        const core::Tensor<core::float32> &above);
+            static core::TensorF32 gaussianBlur(const core::TensorF32 &src, float sigma);
+            static core::TensorF32 downsample(const core::TensorF32 &src);
+            static core::TensorF32 convolveHorizontal(const core::TensorF32 &src,
+                                                      const std::vector<float> &kernel);
+            static core::TensorF32 convolveVertical(const core::TensorF32 &src,
+                                                    const std::vector<float> &kernel);
+            static core::TensorF32 substract(const core::TensorF32 &a, const core::TensorF32 &b);
+            static bool isLocalExtremum(int x, int y, const core::TensorF32 &current,
+                                        const core::TensorF32 &below, const core::TensorF32 &above);
 
             static bool localizeKeypoint(Keypoint &kp, const Layers &dogSpace);
             static bool isEdgeResponse(const Keypoint &kp, const Layers &dogSpace);
@@ -99,7 +96,7 @@ namespace processing {
 
             static void computeDescriptor(Keypoint &kp, const Layers &scaleSpace);
 
-            static Layers buildScaleSpace(const core::Tensor<core::float32> &src);
+            static Layers buildScaleSpace(const core::TensorF32 &src);
             static Layers buildDoGSpace(const Layers &scaleSpace);
             static std::vector<Keypoint> findKeypointCandidates(const Layers &dogSpace);
             static std::vector<Keypoint> refineKeypoints(const std::vector<Keypoint> &candidates,
@@ -112,7 +109,7 @@ namespace processing {
 
         public:
             SIFT() = default;
-            static std::vector<Keypoint> detectAndCompute(const core::Tensor<core::float32> &src);
+            static std::vector<Keypoint> detectAndCompute(const core::TensorF32 &src);
     };
 
     /**
@@ -128,16 +125,16 @@ namespace processing {
      *
      * How SURF works:
      * 1. Interest point detection: Uses a Hessian matrix-based detector to find blob-like
-     * structures at various scales.
+     *    structures at various scales.
      * 2. Interest point localization: Refines keypoint locations using interpolation in
-     * scale-space.
+     *    scale-space.
      * 3. Orientation assignment: Assigns a reproducible orientation to each keypoint based
-     * on information from a circular region around the keypoint.
+     *    on information from a circular region around the keypoint.
      * 4. Descriptor extraction: Constructs a descriptor based on Haar wavelet responses
-     * within a neighborhood of the keypoint, typically resulting in a 64 or 128-dimensional
-     * vector.
+     *    within a neighborhood of the keypoint, typically resulting in a 64 or 128-dimensional
+     *    vector.
      * 5. Keypoint matching: Descriptors can be matched between images for applications
-     * like object recognition, image stitching, and 3D reconstruction.
+     *    like object recognition, image stitching, and 3D reconstruction.
      *
      * ⚠️ PATENT NOTICE:
      * The SURF algorithm is protected by patents in some jurisdictions. This implementation
@@ -148,6 +145,59 @@ namespace processing {
      * @note For commercial applications, consider patent-free alternatives like ORB or AKAZE.
      */
     class SUFT {};
+
+    /**
+     * @brief Class for ORB feature extraction.
+     *
+     * This class implements the ORB (Oriented FAST and Rotated BRIEF) algorithm for detecting
+     * and describing local features in images.
+     *
+     * ORB is a fast, patent-free alternative to SIFT and SURF, that combines the FAST keypoint
+     * detector with the BRIEF descriptor. It provides good performance for real-time applications
+     * and is particularly suitable for mobile and embedded systems.
+     *
+     * How ORB works:
+     * 1. Keypoint Detection: Uses the FAST (Features from Accelerated Segment Test) algorithm
+     *    to detect corner keypoints at multiple scale levels in an image pyramid.
+     * 2. Harris Corner Measure: Applies Harris corner measure to rank FAST keypoints and
+     *    select the most stable ones.
+     * 3. Orientation Assignment: Computes the intensity centroid to assign a consistent
+     *    orientation to each keypoint, making the descriptor rotation-invariant.
+     * 4. Descriptor Computation: Uses a rotated version of the BRIEF (Binary Robust Independent
+     *    Elementary Features) descriptor, creating a 256-bit binary descriptor.
+     * 5. Keypoint Matching: Binary descriptors enable fast matching using Hamming distance.
+     *
+     * Key advantages of ORB:
+     * - Patent-free and open source
+     * - Fast computation suitable for real-time applications
+     * - Binary descriptors enable efficient storage and matching
+     * - Scale and rotation invariant
+     * - Good performance on textured images
+     *
+     * @note ORB is particularly well-suited for SLAM, object tracking, and image matching
+     * applications where speed is crucial.
+     */
+    class ORB {
+        private:
+            // ORB parameters
+            static constexpr int NUM_LEVELS = 8;          // Number of pyramid levels
+            static constexpr float SCALE_FACTOR = 1.2f;   // Scale factor between levels
+            static constexpr int MAX_KEYPOINTS = 500;     // Maximum number of keypoints to detect
+            static constexpr int FAST_THRESHOLD = 20;     // FAST corner threshold
+            static constexpr int PATCH_SIZE = 31;         // Size of the BRIEF patch
+            static constexpr int BORDER_SIZE = 16;        // Border size to avoid edge effects
+
+        public:
+            ORB() = default;
+
+            static Layers buildImagePyramid(const core::TensorF32 &src);
+            static std::vector<Keypoint> detectFASTKeypoints(const Layers &pyramid);
+            static void computeOrientations(std::vector<Keypoint> &keypoints,
+                                            const Layers &pyramid);
+            static void computeDescriptors(std::vector<Keypoint> &keypoints, const Layers &pyramid);
+
+            static std::vector<Keypoint> detectAndCompute(const core::TensorF32 &src);
+    };
 
 }   // namespace processing
 

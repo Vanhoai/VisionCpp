@@ -76,6 +76,15 @@ namespace core {
         }
     }
 
+    core::TensorF32 convertMatToTensor(const cv::Mat &src) {
+        if (src.empty())
+            throw std::runtime_error("Image should be non-empty");
+
+        core::TensorF32 tensor;
+        matToTensor(src, tensor);
+        return tensor;
+    }
+
     void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst) {
         if (tensor.empty())
             throw std::runtime_error("Tensor should be non-empty");

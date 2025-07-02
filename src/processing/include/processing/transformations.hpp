@@ -57,8 +57,8 @@ namespace processing {
              * @param dst           Output image (converted).
              * @param colorSpace   Target color space.
              */
-            static void convertColorSpace(const core::Tensor<core::float32> &src,
-                                          core::Tensor<core::float32> &dst, ColorSpace colorSpace);
+            static void convertColorSpace(const core::TensorF32 &src, core::TensorF32 &dst,
+                                          ColorSpace colorSpace);
 
             /**
              * @brief Convert a BGR image to HSV format.
@@ -101,8 +101,7 @@ namespace processing {
              * @param src   Input image in BGR format.
              * @param dst   Output image in HSV format (3-channel float/double or scaled uchar).
              */
-            static void convertBGRToHSV(const core::Tensor<core::float32> &src,
-                                        core::Tensor<core::float32> &dst);
+            static void convertBGRToHSV(const core::TensorF32 &src, core::TensorF32 &dst);
 
             /**
              * @brief Convert an HSV image to BGR format.
@@ -136,8 +135,7 @@ namespace processing {
              * @param src: The input image in HSV format (3 channels)
              * @param dst: The output image in BGR format like opencv saved
              */
-            static void convertHSVtoBGR(const core::Tensor<core::float32> &src,
-                                        core::Tensor<core::float32> &dst);
+            static void convertHSVtoBGR(const core::TensorF32 &src, core::TensorF32 &dst);
 
             /**
              * @brief Convert a BGR image to grayscale.
@@ -148,8 +146,18 @@ namespace processing {
              * @param src   Input image in BGR format.
              * @param dst   Output grayscale image (1 channel).
              */
-            static void convertToGrayScale(const core::Tensor<core::float32> &src,
-                                           core::Tensor<core::float32> &dst);
+            static void convertToGrayScale(const core::TensorF32 &src, core::TensorF32 &dst);
+
+            /**
+             * @brief Convert a BGR image to grayscale.
+             *
+             * This function takes a BGR image and converts it to grayscale using the formula:
+             * Gray = 0.299 * R + 0.587 * G + 0.114 * B
+             *
+             * @param src Input image in BGR format (3 channels).
+             * @return Grayscale image (1 channel).
+             */
+            static core::TensorF32 convertToGrayScale(const core::TensorF32 &src);
 
             /**
              * @brief Resize an image to a new size.
@@ -159,8 +167,8 @@ namespace processing {
              * @param width     New width of the image.
              * @param height    New height of the image.
              */
-            static void resize(const core::Tensor<core::float32> &src,
-                               core::Tensor<core::float32> &dst, size_t width, size_t height);
+            static void resize(const core::TensorF32 &src, core::TensorF32 &dst, size_t width,
+                               size_t height);
 
             /**
              * @brief Normalize an image by mean and standard deviation.
@@ -172,8 +180,7 @@ namespace processing {
              * @param mean  Mean value per channel.
              * @param std   Standard deviation per channel.
              */
-            static void normalize(const core::Tensor<core::float32> &src,
-                                  core::Tensor<core::float32> &dst,
+            static void normalize(const core::TensorF32 &src, core::TensorF32 &dst,
                                   const std::vector<core::float32> &mean,
                                   const std::vector<core::float32> &std);
 
@@ -185,8 +192,7 @@ namespace processing {
              * @param padding       Size of padding applied to each side of the image.
              * @param value         Padding value (default: black).
              */
-            static void pad(const core::Tensor<core::float32> &src,
-                            core::Tensor<core::float32> &dst, core::float32 padding,
+            static void pad(const core::TensorF32 &src, core::TensorF32 &dst, core::float32 padding,
                             core::float32 value);
 
             /**
@@ -196,8 +202,8 @@ namespace processing {
              * @param dst Output cropped image.
              * @param roi Region of interest to crop.
              */
-            static void crop(const core::Tensor<core::float32> &src,
-                             core::Tensor<core::float32> &dst, const core::Rect &roi);
+            static void crop(const core::TensorF32 &src, core::TensorF32 &dst,
+                             const core::Rect &roi);
 
             /**
              * @brief Randomly crop an image to a given size.
@@ -207,8 +213,8 @@ namespace processing {
              * @param width     Width of the crop.
              * @param height    Height of the crop.
              */
-            static void randomCrop(const core::Tensor<core::float32> &src,
-                                   core::Tensor<core::float32> &dst, size_t width, size_t height);
+            static void randomCrop(const core::TensorF32 &src, core::TensorF32 &dst, size_t width,
+                                   size_t height);
 
             /**
              * @brief Rotate an image by a specified angle.
@@ -220,8 +226,7 @@ namespace processing {
              * @param dst   Rotated output image.
              * @param angle Rotation angle (clockwise).
              */
-            static void rotate(const core::Tensor<core::float32> &src,
-                               core::Tensor<core::float32> &dst, RotateAngle angle);
+            static void rotate(const core::TensorF32 &src, core::TensorF32 &dst, RotateAngle angle);
 
             /**
              * @brief Flip an image horizontally, vertically, or both.
@@ -233,8 +238,7 @@ namespace processing {
              *                  - FlipCode::HORIZONTAL: Horizontal flip (left-right).
              *                  - FlipCode::BOTH: Both horizontal and vertical flip.
              */
-            static void flip(const core::Tensor<core::float32> &src,
-                             core::Tensor<core::float32> &dst, FlipCode flipCode);
+            static void flip(const core::TensorF32 &src, core::TensorF32 &dst, FlipCode flipCode);
     };
 
 }   // namespace processing
