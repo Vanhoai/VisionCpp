@@ -450,6 +450,27 @@ namespace core {
             T* data() { return data_.get(); }
             const T* data() const { return data_.get(); }
 
+            [[nodiscard]] size_t height() const {
+                if (shape_.size() < 2)
+                    throw std::runtime_error("Tensor is not 2D or higher");
+
+                return shape_[0];
+            }
+
+            [[nodiscard]] size_t width() const {
+                if (shape_.size() < 2)
+                    throw std::runtime_error("Tensor is not 2D or higher");
+
+                return shape_[1];
+            }
+
+            [[nodiscard]] size_t channels() const {
+                if (shape_.size() < 3)
+                    throw std::runtime_error("Tensor is not 3D or higher");
+
+                return shape_[2];
+            }
+
             friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
                 // Case 1: 1D tensor
                 if (tensor.shape_.size() == 1) {

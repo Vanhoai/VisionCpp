@@ -174,8 +174,20 @@ namespace processing {
             static constexpr int PATCH_SIZE = 31;         // Size of the BRIEF patch
             static constexpr int BORDER_SIZE = 16;        // Border size to avoid edge effects
 
+            static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> BRIEF_PATTERN;
+
         public:
             ORB() = default;
+
+            static bool isFASTCorner(const core::TensorF32 &src, int x, int y, float threshold,
+                                     int n);
+            static float computeCentroidAngle(const core::Tensor<core::float32> &src, int x, int y,
+                                              int radius);
+            static std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>>
+            generateBRIEFPattern();
+            static std::vector<uint8_t> computeBRIEFDescriptor(const core::TensorF32 &src,
+                                                               const Keypoint &kp);
+            static float computeHarrisScore(const core::TensorF32 &src, int x, int y);
 
             static Layers buildImagePyramid(const core::TensorF32 &src);
             static std::vector<Keypoint> detectFASTKeypoints(const Layers &pyramid);

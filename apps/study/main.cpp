@@ -15,7 +15,6 @@
 #include "core/common.hpp"
 #include "core/core.hpp"
 #include "core/tensor.hpp"
-#include "processing/detections.hpp"
 #include "processing/features.hpp"
 
 std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.png";
@@ -126,22 +125,14 @@ int main() {
         return EXIT_FAILURE;
     }
 
-    core::TensorF32 tensor = core::convertMatToTensor(image);
-    std::vector<processing::Keypoint> keypoints =
-        processing::HarrisCornerDetector::detectCorners(tensor);
-
-    std::vector<cv::KeyPoint> kps = convertToKeypointsCV(keypoints, image.size());
-    std::cout << "Converted " << keypoints.size() << " Harris keypoints" << std::endl;
+    const core::TensorF32 tensor = core::convertMatToTensor(image);
+    const std::vector<processing::Keypoint> keypoints = processing::ORB::detectAndCompute(tensor);
+    const std::vector<cv::KeyPoint> kps = convertToKeypointsCV(keypoints, image.size());
 
     cv::Mat output;
     cv::drawKeypoints(image, kps, output, cv::Scalar(0, 255, 0),
                       cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-
-    core::showImageCenterWindow(output, "Harris Corner Detection");
-
-    // const std::vector<processing::Keypoint> keypoints =
-    // processing::ORB::detectAndCompute(tensor); std::cout << "ORB found: " << keypoints.size() <<
-    // " keypoints." << std::endl;
+    core::showImageCenterWindow(output, "ORB Keypoints");
 
     return EXIT_SUCCESS;
 }
