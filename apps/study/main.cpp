@@ -15,6 +15,7 @@
 #include "core/common.hpp"
 #include "core/core.hpp"
 #include "core/tensor.hpp"
+#include "processing/detections.hpp"
 #include "processing/features.hpp"
 
 std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.png";
@@ -60,13 +61,13 @@ std::vector<cv::KeyPoint> convertToKeypointsCV(const std::vector<processing::Key
         cv::KeyPoint keypoint;
         keypoint.pt.x = kp.x;
         keypoint.pt.y = kp.y;
-        keypoint.size = kp.scale * 2.0f;
+        keypoint.size = (kp.scale > 0 ? kp.scale * 2.0f : 5.0f);
         keypoint.angle = kp.angle * 180.0f / CV_PI;
         if (keypoint.angle < 0)
             keypoint.angle += 360.0f;
 
         keypoint.octave = (kp.octave << 8) | (kp.layer & 0xFF);
-        keypoint.response = 1.0f;
+        keypoint.response = kp.response;
         keypoint.class_id = 0;
 
         if (keypoint.pt.x < 0 || keypoint.pt.x >= imageSize.width || keypoint.pt.y < 0 ||
@@ -119,18 +120,28 @@ void detectWithCustomSIFT() {
 }
 
 int main() {
-    // const cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
-    // if (image.empty()) {
-    //     std::cout << "Cannot read image from " << path << std::endl;
-    //     return EXIT_FAILURE;
-    // }
+    const cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
+    if (image.empty()) {
+        std::cout << "Cannot read image from " << path << std::endl;
+        return EXIT_FAILURE;
+    }
 
-    // core::TensorF32 tensor = core::convertMatToTensor(image);
+    core::TensorF32 tensor = core::convertMatToTensor(image);
+    std::vector<processing::Keypoint> keypoints =
+        processing::HarrisCornerDetector::detectCorners(tensor);
+
+    std::vector<cv::KeyPoint> kps = convertToKeypointsCV(keypoints, image.size());
+    std::cout << "Converted " << keypoints.size() << " Harris keypoints" << std::endl;
+
+    cv::Mat output;
+    cv::drawKeypoints(image, kps, output, cv::Scalar(0, 255, 0),
+                      cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+
+    core::showImageCenterWindow(output, "Harris Corner Detection");
 
     // const std::vector<processing::Keypoint> keypoints =
     // processing::ORB::detectAndCompute(tensor); std::cout << "ORB found: " << keypoints.size() <<
     // " keypoints." << std::endl;
 
-    harrisConnerDetection();
     return EXIT_SUCCESS;
 }

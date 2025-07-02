@@ -19,6 +19,11 @@
  * - Contour Detection
  */
 
+#include <vector>
+
+#include "core/core.hpp"
+#include "processing/processing.hpp"
+
 namespace processing {
 
     /**
@@ -51,11 +56,16 @@ namespace processing {
             static constexpr float THRESHOLD = 0.01f;            // Threshold for corner response
             static constexpr int WINDOW_SIZE = 3;                // Size for summing gradients
             static constexpr int BORDER = 1;                     // Padding to avoid edge issues
+            static constexpr int MAX_POINTS = 1000;              // Maximum number of corners
 
         public:
             /**
-             * @brief Detect corners in the input image.
+             * @brief Detect corners in an image using Harris corner detection.
+             *
+             * @param src input image tensor
+             * @return vector of detected keypoints
              */
+            static std::vector<Keypoint> detectCorners(const core::TensorF32 &src);
     };
 
 }   // namespace processing

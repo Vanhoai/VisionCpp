@@ -19,27 +19,14 @@
  * - ORB (Oriented FAST and Rotated BRIEF)
  */
 
-#include <core/core.hpp>
-#include <core/tensor.hpp>
 #include <vector>
+
+#include "core/core.hpp"
+#include "processing/processing.hpp"
 
 using Layers = std::vector<std::vector<core::TensorF32>>;
 
 namespace processing {
-
-    class Keypoint {
-        public:
-            float x, y;                      // Position in image
-            float scale;                     // Scale (sigma)
-            float angle;                     // Dominant orientation
-            int octave;                      // Octave index
-            int layer;                       // Layer within octave
-            std::vector<float> descriptor;   // 128-dimensional descriptor
-
-            Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0) {
-                descriptor.resize(128, 0.0f);
-            }
-    };
 
     /**
      * @brief Class for SIFT feature extraction.
