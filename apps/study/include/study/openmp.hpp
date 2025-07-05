@@ -5,4 +5,4 @@
 #ifndef OPENMP_HPP
 #define OPENMP_HPP
 
-#endif //OPENMP_HPP
+#endif  // OPENMP_HPP

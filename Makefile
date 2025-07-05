@@ -1,3 +1,6 @@
+format:
+	find ./ -iname '*.cpp' -o -iname '*.hpp' -o -iname '*.h' | xargs clang-format -i
+
 rebuild:
 	cd build && cmake .. -G Ninja && ninja && cd ..
 

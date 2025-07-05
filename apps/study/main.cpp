@@ -16,6 +16,7 @@
 #include "core/core.hpp"
 #include "core/tensor.hpp"
 #include "processing/features.hpp"
+#include "study/coroutines.hpp"
 
 std::string path = "/Users/hinsun/Workspace/ComputerScience/VisionCpp/assets/workspace.png";
 
@@ -62,8 +63,7 @@ std::vector<cv::KeyPoint> convertToKeypointsCV(const std::vector<processing::Key
         keypoint.pt.y = kp.y;
         keypoint.size = (kp.scale > 0 ? kp.scale * 2.0f : 5.0f);
         keypoint.angle = kp.angle * 180.0f / CV_PI;
-        if (keypoint.angle < 0)
-            keypoint.angle += 360.0f;
+        if (keypoint.angle < 0) keypoint.angle += 360.0f;
 
         keypoint.octave = (kp.octave << 8) | (kp.layer & 0xFF);
         keypoint.response = kp.response;
@@ -118,11 +118,11 @@ void detectWithCustomSIFT() {
     core::showImageCenterWindow(output, "Custom SIFT Keypoints");
 }
 
-int main() {
+void orbDetection() {
     const cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
     if (image.empty()) {
         std::cout << "Cannot read image from " << path << std::endl;
-        return EXIT_FAILURE;
+        return;
     }
 
     const core::TensorF32 tensor = core::convertMatToTensor(image);
@@ -133,6 +133,9 @@ int main() {
     cv::drawKeypoints(image, kps, output, cv::Scalar(0, 255, 0),
                       cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
     core::showImageCenterWindow(output, "ORB Keypoints");
+}
 
+int main() {
+    run();
     return EXIT_SUCCESS;
 }
