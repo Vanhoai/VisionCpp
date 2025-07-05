@@ -16,15 +16,14 @@
 
 namespace core {
 
-    std::pair<size_t, size_t> getScreenResolution();
-    void showImageCenterWindow(const cv::Mat &image, const std::string &windowName = "Window");
-    void showImageCenterWindow(const Tensor<float32> &tensor,
-                               const std::string &windowName = "Window");
+std::pair<size_t, size_t> getScreenResolution();
+void showImageCenterWindow(const cv::Mat &image, const std::string &windowName = "Window");
+void showImageCenterWindow(const Tensor<float32> &tensor, const std::string &windowName = "Window");
 
-    void matToTensor(const cv::Mat &src, Tensor<float32> &tensor);
-    core::TensorF32 convertMatToTensor(const cv::Mat &src);
+void matToTensor(const cv::Mat &src, Tensor<float32> &tensor);
+core::TensorF32 convertMatToTensor(const cv::Mat &src);
 
-    void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst);
-}   // namespace core
+void tensorToMat(const Tensor<float32> &tensor, cv::Mat &dst);
+}  // namespace core
 
-#endif   // COMMON_HPP
+#endif  // COMMON_HPP

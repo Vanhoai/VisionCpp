@@ -15,29 +15,29 @@
 
 namespace processing {
 
-    /**
-     * @brief Performs some operation for tensors class
-     *
-     * This file contains operator for tensor class such as:
-     * - convolveHorizontal
-     * - convolveVertical
-     * - gaussianBlur (uses convolveHorizontal and convolveVertical)
-     * - downsample (decreases the size of the tensor by half)
-     * - substract (subtracts two tensors)
-     */
+/**
+ * @brief Performs some operation for tensors class
+ *
+ * This file contains operator for tensor class such as:
+ * - convolveHorizontal
+ * - convolveVertical
+ * - gaussianBlur (uses convolveHorizontal and convolveVertical)
+ * - downsample (decreases the size of the tensor by half)
+ * - substract (subtracts two tensors)
+ */
 
-    core::TensorF32 convolveHorizontal(const core::TensorF32& src,
-                                       const std::vector<core::float32>& kernel);
+core::TensorF32 convolveHorizontal(const core::TensorF32& src,
+                                   const std::vector<core::float32>& kernel);
 
-    core::TensorF32 convolveVertical(const core::TensorF32& src,
-                                     const std::vector<core::float32>& kernel);
+core::TensorF32 convolveVertical(const core::TensorF32& src,
+                                 const std::vector<core::float32>& kernel);
 
-    core::TensorF32 gaussianBlur(const core::TensorF32& src, core::float32 sigma);
+core::TensorF32 gaussianBlur(const core::TensorF32& src, core::float32 sigma);
 
-    core::TensorF32 downsample(const core::TensorF32& src);
+core::TensorF32 downsample(const core::TensorF32& src);
 
-    core::TensorF32 substract(const core::TensorF32& a, const core::TensorF32& b);
+core::TensorF32 substract(const core::TensorF32& a, const core::TensorF32& b);
 
-}   // namespace processing
+}  // namespace processing
 
-#endif   // OPERATORS_HPP
+#endif  // OPERATORS_HPP

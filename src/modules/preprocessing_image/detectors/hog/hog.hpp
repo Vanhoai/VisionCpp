@@ -30,8 +30,8 @@
  */
 namespace detectors {
 
-    class HogDetector {};
+class HogDetector {};
 
-}   // namespace detectors
+}  // namespace detectors
 
 #endif

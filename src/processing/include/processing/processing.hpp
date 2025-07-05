@@ -13,21 +13,21 @@
 
 namespace processing {
 
-    class Keypoint {
-        public:
-            float x, y;                      // Position in image
-            float scale;                     // Scale (sigma)
-            float angle;                     // Dominant orientation
-            int octave;                      // Octave index
-            int layer;                       // Layer within octave
-            std::vector<float> descriptor;   // 128-dimensional descriptor
-            float response;                  // Response value
+class Keypoint {
+public:
+    float x, y;                     // Position in image
+    float scale;                    // Scale (sigma)
+    float angle;                    // Dominant orientation
+    int octave;                     // Octave index
+    int layer;                      // Layer within octave
+    std::vector<float> descriptor;  // 128-dimensional descriptor
+    float response;                 // Response value
 
-            Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0), response(1.0f) {
-                descriptor.resize(128, 0.0f);
-            }
-    };
+    Keypoint() : x(0), y(0), scale(0), angle(0), octave(0), layer(0), response(1.0f) {
+        descriptor.resize(128, 0.0f);
+    }
+};
 
-}   // namespace processing
+}  // namespace processing
 
-#endif   // PROCESSING_HPP
+#endif  // PROCESSING_HPP

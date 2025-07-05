@@ -8,4 +8,4 @@
 
 #include "core/tensor.hpp"
 
-namespace core {}   // namespace core
+namespace core {}  // namespace core

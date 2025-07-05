@@ -14,102 +14,102 @@
 
 namespace processing {
 
-    core::TensorF32 convolveHorizontal(const core::TensorF32& src,
-                                       const std::vector<core::float32>& kernel) {
-        const std::vector<size_t>& shape = src.shape();
-        const size_t height = shape[0];
-        const size_t width = shape[1];
+core::TensorF32 convolveHorizontal(const core::TensorF32& src,
+                                   const std::vector<core::float32>& kernel) {
+    const std::vector<size_t>& shape = src.shape();
+    const size_t height = shape[0];
+    const size_t width = shape[1];
 
-        const int ksize = static_cast<int>(kernel.size());
-        const int khalf = ksize / 2;
+    const int ksize = static_cast<int>(kernel.size());
+    const int khalf = ksize / 2;
 
-        core::TensorF32 dst(height, width);
-        for (size_t y = 0; y < height; y++) {
-            for (size_t x = 0; x < width; x++) {
-                core::float32 sum = 0.0f;
+    core::TensorF32 dst(height, width);
+    for (size_t y = 0; y < height; y++) {
+        for (size_t x = 0; x < width; x++) {
+            core::float32 sum = 0.0f;
 
-                for (int k = -khalf; k <= khalf; k++) {
-                    int xx = std::clamp(static_cast<int>(x) + k, 0, static_cast<int>(width) - 1);
-                    sum += src.at(y, xx) * kernel[k + khalf];
-                }
-
-                dst.at(y, x) = sum;
+            for (int k = -khalf; k <= khalf; k++) {
+                int xx = std::clamp(static_cast<int>(x) + k, 0, static_cast<int>(width) - 1);
+                sum += src.at(y, xx) * kernel[k + khalf];
             }
-        }
 
-        return dst;
+            dst.at(y, x) = sum;
+        }
     }
 
-    core::TensorF32 convolveVertical(const core::TensorF32& src,
-                                     const std::vector<core::float32>& kernel) {
-        const std::vector<size_t>& shape = src.shape();
-        const size_t height = shape[0];
-        const size_t width = shape[1];
+    return dst;
+}
 
-        const int ksize = static_cast<int>(kernel.size());
-        const int khalf = ksize / 2;
+core::TensorF32 convolveVertical(const core::TensorF32& src,
+                                 const std::vector<core::float32>& kernel) {
+    const std::vector<size_t>& shape = src.shape();
+    const size_t height = shape[0];
+    const size_t width = shape[1];
 
-        core::TensorF32 dst(height, width);
-        for (size_t y = 0; y < height; y++) {
-            for (size_t x = 0; x < width; x++) {
-                core::float32 sum = 0.0f;
+    const int ksize = static_cast<int>(kernel.size());
+    const int khalf = ksize / 2;
 
-                for (int k = -khalf; k <= khalf; k++) {
-                    int yy = std::clamp(static_cast<int>(y) + k, 0, static_cast<int>(height) - 1);
-                    sum += src.at(yy, x) * kernel[k + khalf];
-                }
+    core::TensorF32 dst(height, width);
+    for (size_t y = 0; y < height; y++) {
+        for (size_t x = 0; x < width; x++) {
+            core::float32 sum = 0.0f;
 
-                dst.at(y, x) = sum;
+            for (int k = -khalf; k <= khalf; k++) {
+                int yy = std::clamp(static_cast<int>(y) + k, 0, static_cast<int>(height) - 1);
+                sum += src.at(yy, x) * kernel[k + khalf];
             }
+
+            dst.at(y, x) = sum;
         }
-
-        return dst;
     }
 
-    core::TensorF32 gaussianBlur(const core::TensorF32& src, core::float32 sigma) {
-        int kernelSize = static_cast<int>(6 * sigma) | 1;   // Ensure odd size
-        std::vector<core::float32> kernel(kernelSize);
+    return dst;
+}
 
-        float sum = 0.0f;
-        int half = kernelSize / 2;
+core::TensorF32 gaussianBlur(const core::TensorF32& src, core::float32 sigma) {
+    int kernelSize = static_cast<int>(6 * sigma) | 1;  // Ensure odd size
+    std::vector<core::float32> kernel(kernelSize);
 
-        for (int i = 0; i < kernelSize; i++) {
-            float x = i - half;
-            kernel[i] = std::exp(-(x * x) / (2 * sigma * sigma));
-            sum += kernel[i];
-        }
+    float sum = 0.0f;
+    int half = kernelSize / 2;
 
-        // Normalize kernel
-        for (float& val : kernel) val /= sum;
-
-        // Apply separable convolution (horizontal then vertical)
-        core::TensorF32 temp = convolveHorizontal(src, kernel);
-        return convolveVertical(temp, kernel);
+    for (int i = 0; i < kernelSize; i++) {
+        float x = i - half;
+        kernel[i] = std::exp(-(x * x) / (2 * sigma * sigma));
+        sum += kernel[i];
     }
 
-    core::TensorF32 downsample(const core::TensorF32& src) {
-        const std::vector<size_t>& shape = src.shape();
-        const size_t height = shape[0];
-        const size_t width = shape[1];
+    // Normalize kernel
+    for (float& val : kernel) val /= sum;
 
-        const size_t newHeight = height / 2;
-        const size_t newWidth = width / 2;
+    // Apply separable convolution (horizontal then vertical)
+    core::TensorF32 temp = convolveHorizontal(src, kernel);
+    return convolveVertical(temp, kernel);
+}
 
-        core::TensorF32 dst(newHeight, newWidth);
-        for (size_t y = 0; y < newHeight; y++) {
-            for (size_t x = 0; x < newWidth; x++) dst.at(y, x) = src.at(y * 2, x * 2);
-        }
+core::TensorF32 downsample(const core::TensorF32& src) {
+    const std::vector<size_t>& shape = src.shape();
+    const size_t height = shape[0];
+    const size_t width = shape[1];
 
-        return dst;
+    const size_t newHeight = height / 2;
+    const size_t newWidth = width / 2;
+
+    core::TensorF32 dst(newHeight, newWidth);
+    for (size_t y = 0; y < newHeight; y++) {
+        for (size_t x = 0; x < newWidth; x++) dst.at(y, x) = src.at(y * 2, x * 2);
     }
 
-    core::TensorF32 substract(const core::TensorF32& a, const core::TensorF32& b) {
-        if (a.shape() != b.shape())
-            throw std::invalid_argument("Tensors must have the same shape for subtraction.");
+    return dst;
+}
 
-        core::TensorF32 substracted(a.shape());
-        for (size_t i = 0; i < a.size(); i++) substracted.data()[i] = a.data()[i] - b.data()[i];
-        return substracted;
-    }
+core::TensorF32 substract(const core::TensorF32& a, const core::TensorF32& b) {
+    if (a.shape() != b.shape())
+        throw std::invalid_argument("Tensors must have the same shape for subtraction.");
 
-}   // namespace processing
+    core::TensorF32 substracted(a.shape());
+    for (size_t i = 0; i < a.size(); i++) substracted.data()[i] = a.data()[i] - b.data()[i];
+    return substracted;
+}
+
+}  // namespace processing

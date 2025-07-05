@@ -6,8 +6,7 @@
 using namespace std;
 using namespace cv;
 
-void EdgeDetection::calculateGradient(const Mat &grayImage, Mat &magnitude,
-                                      Mat &direction) {
+void EdgeDetection::calculateGradient(const Mat &grayImage, Mat &magnitude, Mat &direction) {
     int rows = grayImage.rows;
     int cols = grayImage.cols;
 
@@ -23,8 +22,7 @@ void EdgeDetection::calculateGradient(const Mat &grayImage, Mat &magnitude,
             // Apply Sobel X kernel
             for (int ki = -1; ki <= 1; ki++) {
                 for (int kj = -1; kj <= 1; kj++) {
-                    const double pixelValue =
-                        grayImage.at<uchar>(i + ki, j + kj);
+                    const double pixelValue = grayImage.at<uchar>(i + ki, j + kj);
                     gx += pixelValue * kernelX[ki + 1][kj + 1];
                     gy += pixelValue * kernelY[ki + 1][kj + 1];
                 }
@@ -35,14 +33,12 @@ void EdgeDetection::calculateGradient(const Mat &grayImage, Mat &magnitude,
             direction.at<double>(i, j) = atan2(gy, gx) * 180.0 / M_PI;
 
             // Normalize direction to 0-180 degrees
-            if (direction.at<double>(i, j) < 0)
-                direction.at<double>(i, j) += 180.0;
+            if (direction.at<double>(i, j) < 0) direction.at<double>(i, j) += 180.0;
         }
     }
 }
 
-Mat EdgeDetection::nonMaximumSuppression(const Mat &magnitude,
-                                         const Mat &direction) {
+Mat EdgeDetection::nonMaximumSuppression(const Mat &magnitude, const Mat &direction) {
     int rows = magnitude.rows;
     int cols = magnitude.cols;
 
@@ -56,8 +52,7 @@ Mat EdgeDetection::nonMaximumSuppression(const Mat &magnitude,
             double neighbor1 = 0, neighbor2 = 0;
 
             // Determine neighbors based on gradient direction
-            if ((angle >= 0 && angle < 22.5) ||
-                (angle >= 157.5 && angle <= 180)) {
+            if ((angle >= 0 && angle < 22.5) || (angle >= 157.5 && angle <= 180)) {
                 // Horizontal direction (0 degrees)
                 neighbor1 = magnitude.at<double>(i, j + 1);
                 neighbor2 = magnitude.at<double>(i, j - 1);
@@ -76,8 +71,7 @@ Mat EdgeDetection::nonMaximumSuppression(const Mat &magnitude,
             }
 
             // Keep pixel if it's a local maximum
-            if (mag >= neighbor1 && mag >= neighbor2)
-                suppressed.at<double>(i, j) = mag;
+            if (mag >= neighbor1 && mag >= neighbor2) suppressed.at<double>(i, j) = mag;
         }
     }
 
@@ -86,8 +80,7 @@ Mat EdgeDetection::nonMaximumSuppression(const Mat &magnitude,
 
 // Helper function for hysteresis thresholding - DFS to connect weak edges
 void connectWeakEdges(Mat &result, Mat &visited, int i, int j) {
-    if (i < 0 || i >= result.rows || j < 0 || j >= result.cols ||
-        visited.at<uchar>(i, j) == 1) {
+    if (i < 0 || i >= result.rows || j < 0 || j >= result.cols || visited.at<uchar>(i, j) == 1) {
         return;
     }
 
@@ -96,15 +89,14 @@ void connectWeakEdges(Mat &result, Mat &visited, int i, int j) {
     // Check 8-connected neighbors
     for (int di = -1; di <= 1; di++) {
         for (int dj = -1; dj <= 1; dj++) {
-            if (di == 0 && dj == 0)
-                continue;
+            if (di == 0 && dj == 0) continue;
 
             int ni = i + di;
             int nj = j + dj;
 
             if (ni >= 0 && ni < result.rows && nj >= 0 && nj < result.cols) {
-                if (result.at<uchar>(ni, nj) == 128) {   // Weak edge
-                    result.at<uchar>(ni, nj) = 255;   // Convert to strong edge
+                if (result.at<uchar>(ni, nj) == 128) {  // Weak edge
+                    result.at<uchar>(ni, nj) = 255;     // Convert to strong edge
                     connectWeakEdges(result, visited, ni, nj);
                 }
             }
@@ -112,8 +104,7 @@ void connectWeakEdges(Mat &result, Mat &visited, int i, int j) {
     }
 }
 
-Mat EdgeDetection::hysteresisThresholding(const Mat &suppressedImage,
-                                          const double lowThreshold,
+Mat EdgeDetection::hysteresisThresholding(const Mat &suppressedImage, const double lowThreshold,
                                           const double highThreshold) {
     int rows = suppressedImage.rows;
     int cols = suppressedImage.cols;
@@ -126,9 +117,9 @@ Mat EdgeDetection::hysteresisThresholding(const Mat &suppressedImage,
         for (int j = 0; j < cols; j++) {
             double pixel = suppressedImage.at<double>(i, j);
             if (pixel >= highThreshold)
-                result.at<uchar>(i, j) = 255;   // Strong edge
+                result.at<uchar>(i, j) = 255;  // Strong edge
             else if (pixel >= lowThreshold)
-                result.at<uchar>(i, j) = 128;   // Weak edge
+                result.at<uchar>(i, j) = 128;  // Weak edge
         }
     }
 
@@ -136,31 +127,28 @@ Mat EdgeDetection::hysteresisThresholding(const Mat &suppressedImage,
     for (int i = 1; i < rows - 1; i++) {
         for (int j = 1; j < cols; j++) {
             if (result.at<uchar>(i, j) == 255 && !visited.at<uchar>(i, j))
-                connectWeakEdges(result, visited, i, j);   // DFS
+                connectWeakEdges(result, visited, i, j);  // DFS
         }
     }
 
     // Third pass: Remove remaining weak edges
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (result.at<uchar>(i, j) == 128)
-                result.at<uchar>(i, j) = 0;
+            if (result.at<uchar>(i, j) == 128) result.at<uchar>(i, j) = 0;
         }
     }
 
     return result;
 }
 
-void EdgeDetection::applySobel(Mat &magnitude, Mat &direction, bool dx,
-                               bool dy) {
+void EdgeDetection::applySobel(Mat &magnitude, Mat &direction, bool dx, bool dy) {
     if (image.empty()) {
         cerr << "Input image is empty!" << endl;
         return;
     }
 
     if (image.channels() != 1) {
-        cerr << "Input image must be a single channel (grayscale) image!"
-             << endl;
+        cerr << "Input image must be a single channel (grayscale) image!" << endl;
         return;
     }
 
@@ -180,11 +168,9 @@ void EdgeDetection::applySobel(Mat &magnitude, Mat &direction, bool dx,
                 }
             }
 
-            if (!dx)
-                gx = 0;   // Ignore X gradient if dx is false
+            if (!dx) gx = 0;  // Ignore X gradient if dx is false
 
-            if (!dy)
-                gy = 0;   // Ignore Y gradient if dy is false
+            if (!dy) gy = 0;  // Ignore Y gradient if dy is false
 
             // Calculate magnitude and direction
             int mag = static_cast<int>(sqrt(gx * gx + gy * gy));
@@ -197,8 +183,7 @@ void EdgeDetection::applySobel(Mat &magnitude, Mat &direction, bool dx,
     }
 }
 
-Mat EdgeDetection::cannyEdgeDetection(double lowThreshold,
-                                      double highThreshold) {
+Mat EdgeDetection::cannyEdgeDetection(double lowThreshold, double highThreshold) {
     if (image.empty()) {
         cerr << "Input image is empty!" << endl;
         return Mat();
@@ -215,12 +200,10 @@ Mat EdgeDetection::cannyEdgeDetection(double lowThreshold,
     calculateGradient(grayImage, gradientMagnitude, gradientDirection);
 
     // Step 3: Non-Maximum Suppression
-    Mat suppressedImage =
-        nonMaximumSuppression(gradientMagnitude, gradientDirection);
+    Mat suppressedImage = nonMaximumSuppression(gradientMagnitude, gradientDirection);
 
     // Step 4: Hysteresis Thresholding
-    Mat cannyResult =
-        hysteresisThresholding(suppressedImage, lowThreshold, highThreshold);
+    Mat cannyResult = hysteresisThresholding(suppressedImage, lowThreshold, highThreshold);
 
     return cannyResult;
 }

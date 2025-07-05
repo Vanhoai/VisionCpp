@@ -1,5 +1,5 @@
 format:
-	find ./ -iname '*.cpp' -o -iname '*.hpp' -o -iname '*.h' | xargs clang-format -i
+	find ./ \( -iname '*.cpp' -o -iname '*.hpp' -o -iname '*.h' \) | xargs clang-format -i -style=file
 
 rebuild:
 	cd build && cmake .. -G Ninja && ninja && cd ..
