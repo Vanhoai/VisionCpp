@@ -2,22 +2,13 @@ format:
 	find ./ \( -iname '*.cpp' -o -iname '*.hpp' -o -iname '*.h' \) | xargs clang-format -i -style=file
 
 rebuild:
-	cd build && cmake .. -G Ninja && ninja && cd ..
+	cd build && cmake .. -G Ninja && ninja
 
 study:
-	cd build/apps/study && ./study && cd ../../../
+	make rebuild && cd build/apps/study && ./study
 
 training:
-	cd build/apps/training && ./training && cd ../../../
+	make rebuild && cd build/apps/training && ./training
 
 benchmark:
-	cd build/apps/benchmark && ./benchmark && cd ../../../
-
-run-study:
-	make rebuild && make study
-
-run-training:
-	make rebuild && make training
-
-run-benchmark:
-	make rebuild && make benchmark
+	make rebuild && cd build/apps/benchmark && ./benchmark
