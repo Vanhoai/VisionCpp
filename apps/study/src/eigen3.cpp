@@ -55,9 +55,9 @@ void operator_matrix_vector_operation() {
     cout << "Matrix C (A * B):\n" << C << endl;
 
     // Element-wise operations (use .array())
-    const MatrixXd result = A.array() * A.array();   // Element-wise multiplication
-    const MatrixXd sqrt_A = A.array().sqrt();        // Element-wise square root
-    const MatrixXd exp_A = A.array().exp();          // Element-wise exponential
+    const MatrixXd result = A.array() * A.array();  // Element-wise multiplication
+    const MatrixXd sqrt_A = A.array().sqrt();       // Element-wise square root
+    const MatrixXd exp_A = A.array().exp();         // Element-wise exponential
 
     cout << "Element-wise multiplication of A:\n" << result << endl;
     cout << "Element-wise square root of A:\n" << sqrt_A << endl;
@@ -156,12 +156,12 @@ void Eigen3Learning::matrix_manipulation() {
     A.resize(3, 2);
 
     cout << "Matrix A after resizing:\n" << A << endl;
-    A << 1, 2, 3, 4, 5, 6;   // Fill with values
+    A << 1, 2, 3, 4, 5, 6;  // Fill with values
 
     // Row and column operations
-    VectorXd row = A.row(0);               // Get first row
-    VectorXd col = A.col(0);               // Get first column
-    A.row(0) = VectorXd::Zero(A.cols());   // Set row to zero
+    VectorXd row = A.row(0);              // Get first row
+    VectorXd col = A.col(0);              // Get first column
+    A.row(0) = VectorXd::Zero(A.cols());  // Set row to zero
 
     cout << "Matrix A after manipulation:\n" << A << endl;
 
@@ -199,51 +199,51 @@ void Eigen3Learning::matrix_manipulation() {
 }
 
 class MultivariateNormal {
-    private:
-        std::mt19937 generator;
-        std::normal_distribution<double> normal_dist;
+private:
+    std::mt19937 generator;
+    std::normal_distribution<double> normal_dist;
 
-    public:
-        MultivariateNormal() : normal_dist(0.0, 1.0) {
-            // Set seed for reproducibility (equivalent to np.random.seed(5))
-            generator.seed(5);
-        }
-        // Generate multivariate normal samples
-        MatrixXd sample(const VectorXd &mean, const MatrixXd &cov, int num_samples) {
-            int dim = mean.size();
-            // Cholesky decomposition of covariance matrix
-            LLT<MatrixXd> chol_solver(cov);
-            MatrixXd L = chol_solver.matrixL();
-            // Generate standard normal samples
-            MatrixXd samples(num_samples, dim);
-            for (int i = 0; i < num_samples; ++i) {
-                for (int j = 0; j < dim; ++j) {
-                    samples(i, j) = normal_dist(generator);
-                }
+public:
+    MultivariateNormal() : normal_dist(0.0, 1.0) {
+        // Set seed for reproducibility (equivalent to np.random.seed(5))
+        generator.seed(5);
+    }
+    // Generate multivariate normal samples
+    MatrixXd sample(const VectorXd &mean, const MatrixXd &cov, int num_samples) {
+        int dim = mean.size();
+        // Cholesky decomposition of covariance matrix
+        LLT<MatrixXd> chol_solver(cov);
+        MatrixXd L = chol_solver.matrixL();
+        // Generate standard normal samples
+        MatrixXd samples(num_samples, dim);
+        for (int i = 0; i < num_samples; ++i) {
+            for (int j = 0; j < dim; ++j) {
+                samples(i, j) = normal_dist(generator);
             }
-            // Transform to desired distribution: X = mean + L * Z
-            MatrixXd result(num_samples, dim);
-            for (int i = 0; i < num_samples; ++i) {
-                VectorXd z = samples.row(i).transpose();
-                VectorXd x = mean + L * z;
-                result.row(i) = x.transpose();
-            }
-
-            return result;
+        }
+        // Transform to desired distribution: X = mean + L * Z
+        MatrixXd result(num_samples, dim);
+        for (int i = 0; i < num_samples; ++i) {
+            VectorXd z = samples.row(i).transpose();
+            VectorXd x = mean + L * z;
+            result.row(i) = x.transpose();
         }
 
-        // Shuffle indices randomly
-        std::vector<int> shuffle_indices(int size) {
-            std::vector<int> indices(size);
-            std::iota(indices.begin(), indices.end(), 0);
-            std::shuffle(indices.begin(), indices.end(), generator);
-            return indices;
-        }
+        return result;
+    }
+
+    // Shuffle indices randomly
+    std::vector<int> shuffle_indices(int size) {
+        std::vector<int> indices(size);
+        std::iota(indices.begin(), indices.end(), 0);
+        std::shuffle(indices.begin(), indices.end(), generator);
+        return indices;
+    }
 };
 
 void Eigen3Learning::random_matrix_operations() {
-    int num = 50;     // Number of samples per group
-    int groups = 4;   // Number of groups
+    int num = 50;    // Number of samples per group
+    int groups = 4;  // Number of groups
 
     std::vector<VectorXd> means(4);
     means[0] = VectorXd(2);

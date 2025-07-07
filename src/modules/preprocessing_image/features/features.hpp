@@ -17,12 +17,12 @@ using namespace std;
 
 namespace feature_detection {
 
-    class FeatureDetector {
-        public:
-            static void harrisCornerDetection(const Mat &image);
-            static void siftDetection(const Mat &image);
-    };
+class FeatureDetector {
+public:
+    static void harrisCornerDetection(const Mat &image);
+    static void siftDetection(const Mat &image);
+};
 
-}   // namespace feature_detection
+}  // namespace feature_detection
 
-#endif   // FEATURES_HPP
+#endif  // FEATURES_HPP

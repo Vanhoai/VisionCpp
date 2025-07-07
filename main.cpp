@@ -25,8 +25,7 @@ const string image_path = root + "/image.jpg";
 const string video_path = root + "/video.mp4";
 
 // Function to read IDX3-UBYTE files
-std::vector<std::vector<unsigned char>>
-readIDX3UByteFile(const std::string &filename) {
+std::vector<std::vector<unsigned char>> readIDX3UByteFile(const std::string &filename) {
     std::ifstream file(filename, std::ios::binary);
 
     if (!file) {
@@ -44,9 +43,8 @@ readIDX3UByteFile(const std::string &filename) {
     file.read(numImagesBytes, 4);
     file.read(numRowsBytes, 4);
     file.read(numColsBytes, 4);
-    std::cout << static_cast<int>(numImagesBytes[0]) << "  "
-              << static_cast<int>(numImagesBytes[1]) << "  "
-              << (int) static_cast<unsigned char>(numImagesBytes[2]) << "  "
+    std::cout << static_cast<int>(numImagesBytes[0]) << "  " << static_cast<int>(numImagesBytes[1])
+              << "  " << (int)static_cast<unsigned char>(numImagesBytes[2]) << "  "
               << static_cast<int>(numImagesBytes[3]) << "  " << std::endl;
 
     // Convert the header information from big-endian to native endianness
@@ -69,7 +67,7 @@ readIDX3UByteFile(const std::string &filename) {
     for (int i = 0; i < numImages; i++) {
         // Read each image as a vector of bytes
         std::vector<unsigned char> image(numRows * numCols);
-        file.read((char *) (image.data()), numRows * numCols);
+        file.read((char *)(image.data()), numRows * numCols);
 
         images.push_back(image);
     }
@@ -80,8 +78,7 @@ readIDX3UByteFile(const std::string &filename) {
 }
 
 // Function to read IDX3-UBYTE files
-std::vector<std::vector<unsigned char>>
-readLabelFile(const std::string &filename) {
+std::vector<std::vector<unsigned char>> readLabelFile(const std::string &filename) {
     std::ifstream file(filename, std::ios::binary);
 
     if (!file) {
@@ -108,7 +105,7 @@ readLabelFile(const std::string &filename) {
     for (int i = 0; i < numImages; i++) {
         // Read each image as a vector of bytes
         std::vector<unsigned char> image(1);
-        file.read((char *) (image.data()), 1);
+        file.read((char *)(image.data()), 1);
 
         images.push_back(image);
     }
@@ -119,38 +116,35 @@ readLabelFile(const std::string &filename) {
 }
 
 void read_mnist() {
-    string X_train_path = "/Users/aurorastudyvn/Workspace/ML/VisionCpp/"
-                          "train-images-idx3-ubyte:train-images.idx3-ubyte";
-    string y_train_path = "/Users/aurorastudyvn/Workspace/ML/VisionCpp/"
-                          "train-labels-idx1-ubyte:train-labels.idx1-ubyte";
+    string X_train_path =
+        "/Users/aurorastudyvn/Workspace/ML/VisionCpp/"
+        "train-images-idx3-ubyte:train-images.idx3-ubyte";
+    string y_train_path =
+        "/Users/aurorastudyvn/Workspace/ML/VisionCpp/"
+        "train-labels-idx1-ubyte:train-labels.idx1-ubyte";
 
-    std::vector<std::vector<unsigned char>> imagesFile =
-        readIDX3UByteFile(X_train_path);
-    std::vector<std::vector<unsigned char>> labelsFile =
-        readLabelFile(y_train_path);
-    std::vector<Mat> imagesData;   // Store your images
-    std::vector<int> labelsData;   // Corresponding labels
+    std::vector<std::vector<unsigned char>> imagesFile = readIDX3UByteFile(X_train_path);
+    std::vector<std::vector<unsigned char>> labelsFile = readLabelFile(y_train_path);
+    std::vector<Mat> imagesData;  // Store your images
+    std::vector<int> labelsData;  // Corresponding labels
 
-    for (int imgCnt = 0; imgCnt < (int) imagesFile.size(); imgCnt++) {
+    for (int imgCnt = 0; imgCnt < (int)imagesFile.size(); imgCnt++) {
         int rowCounter = 0;
         int colCounter = 0;
 
         Mat tempImg = Mat::zeros(Size(28, 28), CV_8UC1);
-        for (int i = 0; i < (int) imagesFile[imgCnt].size(); i++) {
-
-            tempImg.at<uchar>(Point(colCounter++, rowCounter)) =
-                (int) imagesFile[imgCnt][i];
+        for (int i = 0; i < (int)imagesFile[imgCnt].size(); i++) {
+            tempImg.at<uchar>(Point(colCounter++, rowCounter)) = (int)imagesFile[imgCnt][i];
             if ((i) % 28 == 0) {
                 rowCounter++;
                 colCounter = 0;
-                if (i == 756)
-                    break;
+                if (i == 756) break;
             }
         }
-        std::cout << (int) labelsFile[imgCnt][0] << std::endl;
+        std::cout << (int)labelsFile[imgCnt][0] << std::endl;
 
         imagesData.push_back(tempImg);
-        labelsData.push_back((int) labelsFile[imgCnt][0]);
+        labelsData.push_back((int)labelsFile[imgCnt][0]);
     }
 }
 

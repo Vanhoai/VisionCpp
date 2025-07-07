@@ -10,11 +10,11 @@
 using namespace Eigen;
 
 class Eigen3Learning {
-    public:
-        static void matrix_vector_operation();
-        static void essential_neural_network_operations();
-        static void matrix_manipulation();
-        static void random_matrix_operations();
+public:
+    static void matrix_vector_operation();
+    static void essential_neural_network_operations();
+    static void matrix_manipulation();
+    static void random_matrix_operations();
 };
 
-#endif   // EIGEN3_HPP
+#endif  // EIGEN3_HPP

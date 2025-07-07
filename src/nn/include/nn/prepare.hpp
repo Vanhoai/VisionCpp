@@ -8,7 +8,7 @@
 #include <Eigen/Core>
 
 namespace nn {
-    void prepare(int N, int groups, int d, Eigen::MatrixXd &X, Eigen::MatrixXd &Y);
+void prepare(int N, int groups, int d, Eigen::MatrixXd &X, Eigen::MatrixXd &Y);
 }
 
-#endif   // PREPARE_HPP
+#endif  // PREPARE_HPP

@@ -8,22 +8,21 @@
 
 #include "benchmark.hpp"
 
-#include <opencv2/opencv.hpp>
-
-#include "core/core.hpp"
-#include "core/tensor.hpp"
+#include <iostream>
 
 int main() {
-    const core::Tensor<core::float32> A({
-        {3.4, 5.6, 7.8},
-        {1.2, 3.4, 5.6},
-        {9.0, 1.2, 3.4},
-    });
-
-    std::cout << A << std::endl;
-
-    const core::Tensor B = core::Tensor<core::float32>::cast<core::int32>(A);
-    std::cout << B << std::endl;
+    if (__cplusplus == 202302L)
+        std::cout << "C++23";
+    else if (__cplusplus == 202002L)
+        std::cout << "C++20";
+    else if (__cplusplus == 201703L)
+        std::cout << "C++17";
+    else if (__cplusplus == 201402L)
+        std::cout << "C++14";
+    else if (__cplusplus == 201103L)
+        std::cout << "C++11";
+    else if (__cplusplus == 199711L)
+        std::cout << "C++98";
 
     return EXIT_SUCCESS;
 }

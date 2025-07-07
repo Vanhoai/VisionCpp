@@ -3,6 +3,7 @@ find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(benchmark REQUIRED)
 
 # OpenCL - Optional if you want to use OpenCL features
 if (ENABLE_OPENCL)
