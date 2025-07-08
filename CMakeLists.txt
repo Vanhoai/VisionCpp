@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
-project(VisionNative
+project(Nurovi
         VERSION 1.0.0
-        DESCRIPTION "🚀 Advanced C++ Algorithms for Computer Vision & Image Processing"
+        DESCRIPTION "🚀 Nurovi is a advanced library C++ Algorithms for Computer Vision & Image Processing"
         LANGUAGES C CXX
 )
 
